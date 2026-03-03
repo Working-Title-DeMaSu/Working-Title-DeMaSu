@@ -1,5 +1,7 @@
 package com.jsl26tp.jsl26tp.service;
 
+import com.jsl26tp.jsl26tp.common.BusinessException;
+import com.jsl26tp.jsl26tp.common.ErrorCode;
 import com.jsl26tp.jsl26tp.domain.User;
 import com.jsl26tp.jsl26tp.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,20 @@ public class UserService {
 
     // 회원가입
     public void register(User user) {
+        // ✅ 중복 체크 → BusinessException으로 통일
+        if (userMapper.findByUsername(user.getUsername()) != null) {
+            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
+        }
+        if (userMapper.findByNickname(user.getNickname()) != null) {
+            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        if (userMapper.findByEmail(user.getEmail()) != null) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        if (user.getPassword().length() < 8) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+
         // 비밀번호 BCrypt 암호화
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -52,7 +68,11 @@ public class UserService {
 
     // 회원 정보 조회
     public User findById(Long id) {
-        return userMapper.findById(id);
+        User user = userMapper.findById(id);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        return user;
     }
 
     // 회원 정보 수정
@@ -62,6 +82,9 @@ public class UserService {
 
     // 비밀번호 변경
     public void updatePassword(Long id, String newPassword) {
+        if (newPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
         userMapper.updatePassword(id, passwordEncoder.encode(newPassword));
     }
 }

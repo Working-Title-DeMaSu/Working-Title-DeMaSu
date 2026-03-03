@@ -1,5 +1,7 @@
 package com.jsl26tp.jsl26tp.controller;
 
+import com.jsl26tp.jsl26tp.common.ApiResponse;
+import com.jsl26tp.jsl26tp.common.BusinessException;
 import com.jsl26tp.jsl26tp.domain.User;
 import com.jsl26tp.jsl26tp.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -49,59 +51,42 @@ public class AuthController {
             return "register";
         }
 
-        // 비밀번호 8자 이상
-        if (user.getPassword().length() < 8) {
-            model.addAttribute("error", "パスワードは8文字以上で入力してください。");
+        // 회원가입 실행 (검증은 UserService에서 BusinessException으로 처리)
+        try {
+            userService.register(user);
+        } catch (BusinessException e) {
+            model.addAttribute("error", e.getMessage());
             model.addAttribute("user", user);
             return "register";
         }
-
-        // username 중복 체크
-        if (userService.isUsernameTaken(user.getUsername())) {
-            model.addAttribute("error", "すでに使用されているIDです。");
-            model.addAttribute("user", user);
-            return "register";
-        }
-
-        // 닉네임 중복 체크
-        if (userService.isNicknameTaken(user.getNickname())) {
-            model.addAttribute("error", "すでに使用されているニックネームです。");
-            model.addAttribute("user", user);
-            return "register";
-        }
-
-        // 이메일 중복 체크
-        if (userService.isEmailTaken(user.getEmail())) {
-            model.addAttribute("error", "すでに使用されているメールアドレスです。");
-            model.addAttribute("user", user);
-            return "register";
-        }
-
-        // 회원가입 실행
-        userService.register(user);
 
         redirectAttributes.addFlashAttribute("registerSuccess", true);
         return "redirect:/login";
     }
 
-    // username 중복 체크 API (Ajax용)
+    // ===== Ajax API (ApiResponse 통일) =====
+
+    // username 중복 체크 API
     @GetMapping("/api/check-username")
     @ResponseBody
-    public boolean checkUsername(@RequestParam String username) {
-        return !userService.isUsernameTaken(username);
+    public ApiResponse<Boolean> checkUsername(@RequestParam String username) {
+        boolean available = !userService.isUsernameTaken(username);
+        return ApiResponse.ok(available);
     }
 
-    // 닉네임 중복 체크 API (Ajax용)
+    // 닉네임 중복 체크 API
     @GetMapping("/api/check-nickname")
     @ResponseBody
-    public boolean checkNickname(@RequestParam String nickname) {
-        return !userService.isNicknameTaken(nickname);
+    public ApiResponse<Boolean> checkNickname(@RequestParam String nickname) {
+        boolean available = !userService.isNicknameTaken(nickname);
+        return ApiResponse.ok(available);
     }
 
-    // 이메일 중복 체크 API (Ajax용)
+    // 이메일 중복 체크 API
     @GetMapping("/api/check-email")
     @ResponseBody
-    public boolean checkEmail(@RequestParam String email) {
-        return !userService.isEmailTaken(email);
+    public ApiResponse<Boolean> checkEmail(@RequestParam String email) {
+        boolean available = !userService.isEmailTaken(email);
+        return ApiResponse.ok(available);
     }
 }
