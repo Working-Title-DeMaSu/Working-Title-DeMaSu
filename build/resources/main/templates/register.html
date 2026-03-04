@@ -208,8 +208,8 @@ document.getElementById('usernameInput').addEventListener('input', function() {
     usernameTimeout = setTimeout(() => {
         fetch(`/api/check-username?username=${encodeURIComponent(value)}`)
             .then(res => res.json())
-            .then(available => {
-                if (available) {
+            .then(response => {
+                if (response.success && response.data) {
                     msg.textContent = '使用可能なIDです。';
                     msg.className = 'field-message success';
                 } else {
@@ -232,8 +232,8 @@ document.getElementById('nicknameInput').addEventListener('input', function() {
     nicknameTimeout = setTimeout(() => {
         fetch(`/api/check-nickname?nickname=${encodeURIComponent(value)}`)
             .then(res => res.json())
-            .then(available => {
-                if (available) {
+            .then(response => {
+                if (response.success && response.data) {
                     msg.textContent = '使用可能なニックネームです。';
                     msg.className = 'field-message success';
                 } else {
@@ -256,8 +256,8 @@ document.getElementById('emailInput').addEventListener('input', function() {
     emailTimeout = setTimeout(() => {
         fetch(`/api/check-email?email=${encodeURIComponent(value)}`)
             .then(res => res.json())
-            .then(available => {
-                if (available) {
+            .then(response => {
+                if (response.success && response.data) {
                     msg.textContent = '使用可能なメールアドレスです。';
                     msg.className = 'field-message success';
                 } else {

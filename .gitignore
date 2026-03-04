@@ -1,3 +1,4 @@
+# --- Project Basic Ignore ---
 # Compiled class file
 *.class
 
@@ -19,6 +20,24 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# --- Spring Boot & Gradle Specific (추가)
+.gradle/
+build/
+out/
+bin/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# --- OS Specific (For Window/Mac) ---
+.DS_Store
+Thumbs.db
+
+# --- Security & Local Settings ---
+# 로컬 DB 정보나 비번이 들어간 파일은 공유되지 않도록 설정
+application-local.properties

@@ -44,7 +44,8 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**",
                     "/images/**",
-                    "/img/**"
+                    "/img/**",
+                    "/uploads/**"           // 업로드된 이미지 파일
                 ).permitAll()
 
                 // 관리자 전용 페이지
