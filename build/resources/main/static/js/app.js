@@ -113,14 +113,8 @@ function moveToMyLocation() {
 function loadNearbyToilets(lat, lng, radius) {
     fetch(`/api/toilets?lat=${lat}&lng=${lng}&radius=${radius}`)
         .then(response => response.json())
-        .then(response => {
-            // ✅ ApiResponse 형태: { success, data, message, errorCode }
-            if (response.success) {
-                renderToiletList(response.data);
-            } else {
-                console.error('API Error:', response.errorCode, response.message);
-                showToast(response.message || 'エラーが発生しました。');
-            }
+        .then(data => {
+            renderToiletList(data);
         })
         .catch(error => {
             console.error('Error loading toilets:', error);

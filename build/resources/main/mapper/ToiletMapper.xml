@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsl26tp.jsl26tp.mapper.ToiletMapper">
+
+    <!-- 주변 화장실 검색 (위도, 경도, 반경 - Haversine 공식) -->
+    <select id="findNearby" resultType="Toilet">
+        SELECT *,
+               (6371000 * ACOS(
+                   COS(RADIANS(#{lat})) * COS(RADIANS(latitude))
+                   * COS(RADIANS(longitude) - RADIANS(#{lng}))
+                   + SIN(RADIANS(#{lat})) * SIN(RADIANS(latitude))
+               )) AS distance
+        FROM toilets
+        WHERE status = 'APPROVED'
+          AND deleted_at IS NULL
+        HAVING distance &lt;= #{radius}
+        ORDER BY distance
+    </select>
+
+    <!-- 필터 검색 -->
+    <select id="findByFilter" parameterType="map" resultType="Toilet">
+        SELECT *,
+               (6371000 * ACOS(
+                   COS(RADIANS(#{lat})) * COS(RADIANS(latitude))
+                   * COS(RADIANS(longitude) - RADIANS(#{lng}))
+                   + SIN(RADIANS(#{lat})) * SIN(RADIANS(latitude))
+               )) AS distance
+        FROM toilets
+        WHERE status = 'APPROVED'
+          AND deleted_at IS NULL
+          <if test="is24hours != null and is24hours == 1">
+              AND is_24hours = 1
+          </if>
+          <if test="isWheelchair != null and isWheelchair == 1">
+              AND is_wheelchair = 1
+          </if>
+          <if test="hasDiaper != null and hasDiaper == 1">
+              AND has_diaper = 1
+          </if>
+          <if test="hasEmergency != null and hasEmergency == 1">
+              AND has_emergency = 1
+          </if>
+          <if test="hasPaper != null and hasPaper == 1">
+              AND has_paper = 1
+          </if>
+          <if test="hasSanitary != null and hasSanitary == 1">
+              AND has_sanitary = 1
+          </if>
+        HAVING distance &lt;= #{radius}
+        ORDER BY distance
+    </select>
+
+    <!-- 키워드 검색 (이름, 주소) -->
+    <select id="findByKeyword" resultType="Toilet">
+        SELECT * FROM toilets
+        WHERE status = 'APPROVED'
+          AND deleted_at IS NULL
+          AND (name LIKE CONCAT('%', #{keyword}, '%')
+               OR address LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY name
+    </select>
+
+    <!-- 화장실 상세 조회 -->
+    <select id="findById" resultType="Toilet">
+        SELECT * FROM toilets WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <!-- 새 화장실 등록 (사용자 제보) -->
+    <insert id="insertToilet" parameterType="Toilet">
+        INSERT INTO toilets (name, address, latitude, longitude, open_hours,
+                             is_24hours, is_wheelchair, has_paper, has_soap,
+                             has_sanitary, has_diaper, toilet_type, has_emergency,
+                             source, status, by_user_id)
+        VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{openHours},
+                #{is24hours}, #{isWheelchair}, #{hasPaper}, #{hasSoap},
+                #{hasSanitary}, #{hasDiaper}, #{toiletType}, #{hasEmergency},
+                #{source}, #{status}, #{byUserId})
+    </insert>
+
+    <!-- 화장실 정보 수정 (관리자) -->
+    <update id="updateToilet" parameterType="Toilet">
+        UPDATE toilets
+        SET name          = #{name},
+            address       = #{address},
+            latitude      = #{latitude},
+            longitude     = #{longitude},
+            open_hours    = #{openHours},
+            is_24hours    = #{is24hours},
+            is_wheelchair = #{isWheelchair},
+            has_paper     = #{hasPaper},
+            has_soap      = #{hasSoap},
+            has_sanitary  = #{hasSanitary},
+            has_diaper    = #{hasDiaper},
+            toilet_type   = #{toiletType},
+            has_emergency = #{hasEmergency}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 화장실 삭제 (소프트 삭제) -->
+    <update id="deleteToilet">
+        UPDATE toilets SET deleted_at = NOW() WHERE id = #{id}
+    </update>
+
+    <!-- 승인 대기 화장실 목록 (관리자용) -->
+    <select id="findPendingToilets" resultType="Toilet">
+        SELECT * FROM toilets
+        WHERE status = 'PENDING' AND deleted_at IS NULL
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 화장실 상태 변경 (승인/거절) -->
+    <update id="updateStatus">
+        UPDATE toilets SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- 전체 화장실 목록 (관리자용) -->
+    <select id="findAllToilets" resultType="Toilet">
+        SELECT * FROM toilets WHERE deleted_at IS NULL ORDER BY created_at DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsl26tp.jsl26tp.mapper.InquiryMapper">
+
+    <!-- 문의 등록 -->
+    <insert id="insertInquiry" parameterType="Inquiry">
+        INSERT INTO inquiries (writer_id, title, content)
+        VALUES (#{writerId}, #{title}, #{content})
+    </insert>
+
+    <!-- 문의 목록 (관리자용 - 전체) -->
+    <select id="findAllInquiries" resultType="Inquiry">
+        SELECT i.*, u.nickname AS writer_nickname
+        FROM inquiries i
+        JOIN users u ON i.writer_id = u.id
+        WHERE i.deleted_at IS NULL
+        ORDER BY i.created_at DESC
+    </select>
+
+    <!-- 내 문의 목록 (사용자용) -->
+    <select id="findByWriterId" resultType="Inquiry">
+        SELECT i.*, u.nickname AS writer_nickname
+        FROM inquiries i
+        JOIN users u ON i.writer_id = u.id
+        WHERE i.writer_id = #{writerId}
+          AND i.deleted_at IS NULL
+        ORDER BY i.created_at DESC
+    </select>
+
+    <!-- 문의 상세 조회 -->
+    <select id="findById" resultType="Inquiry">
+        SELECT i.*,
+               w.nickname AS writer_nickname,
+               a.nickname AS admin_nickname
+        FROM inquiries i
+        JOIN users w ON i.writer_id = w.id
+        LEFT JOIN users a ON i.admin_id = a.id
+        WHERE i.id = #{id}
+    </select>
+
+    <!-- 답변 등록 (관리자) -->
+    <update id="updateAnswer">
+        UPDATE inquiries
+        SET admin_id    = #{adminId},
+            answer      = #{answer},
+            status      = 'ANSWERED',
+            answered_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 문의 삭제 (소프트 삭제) -->
+    <update id="deleteInquiry">
+        UPDATE inquiries SET deleted_at = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>

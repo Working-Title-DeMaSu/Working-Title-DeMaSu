@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsl26tp.jsl26tp.mapper.ToiletEditRequestMapper">
+
+    <!-- 수정 제안 등록 -->
+    <insert id="insertRequest" parameterType="ToiletEditRequest">
+        INSERT INTO toilet_edit_requests (toilet_id, user_id, content)
+        VALUES (#{toiletId}, #{userId}, #{content})
+    </insert>
+
+    <!-- 수정 제안 목록 (관리자용) -->
+    <select id="findAllRequests" resultType="ToiletEditRequest">
+        SELECT ter.*, t.name AS toilet_name, u.nickname
+        FROM toilet_edit_requests ter
+        JOIN toilets t ON ter.toilet_id = t.id
+        LEFT JOIN users u ON ter.user_id = u.id
+        WHERE ter.deleted_at IS NULL
+        ORDER BY ter.created_at DESC
+    </select>
+
+    <!-- 대기 중인 수정 제안 목록 -->
+    <select id="findPendingRequests" resultType="ToiletEditRequest">
+        SELECT ter.*, t.name AS toilet_name, u.nickname
+        FROM toilet_edit_requests ter
+        JOIN toilets t ON ter.toilet_id = t.id
+        LEFT JOIN users u ON ter.user_id = u.id
+        WHERE ter.status = 'PENDING'
+          AND ter.deleted_at IS NULL
+        ORDER BY ter.created_at DESC
+    </select>
+
+    <!-- 수정 제안 상세 조회 -->
+    <select id="findById" resultType="ToiletEditRequest">
+        SELECT ter.*, t.name AS toilet_name, u.nickname
+        FROM toilet_edit_requests ter
+        JOIN toilets t ON ter.toilet_id = t.id
+        LEFT JOIN users u ON ter.user_id = u.id
+        WHERE ter.id = #{id}
+    </select>
+
+    <!-- 수정 제안 상태 변경 -->
+    <update id="updateStatus">
+        UPDATE toilet_edit_requests SET status = #{status} WHERE id = #{id}
+    </update>
+
+</mapper>
