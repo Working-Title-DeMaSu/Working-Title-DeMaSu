@@ -83,4 +83,23 @@ public class ReviewService {
         }
     }
 
+    /*
+     * 리뷰 상세 조회
+     */
+
+    public Review getReviewDetail(Long id) {
+        // 리뷰 정보 + 작성자 닉네임 가져오기
+        Review review = reviewMapper.findById(id);
+
+        // 예외 처리: 만약 해당 리뷰가 존재하지 않거나 삭제된 상태라면
+        if (review == null || "HIDDEN".equals(review.getStatus())) {
+            throw new BusinessException(ErrorCode.REVIEW_NOT_FOUND); //
+        }
+
+        // 해당 리뷰 이미지 리스트 가져와서 객체에 담기
+        List<ReviewImage> images = reviewImageMapper.findByReviewId(id);
+        review.setImages(images);
+
+        return review;
+    }
 }
