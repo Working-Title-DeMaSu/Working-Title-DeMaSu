@@ -125,4 +125,19 @@ public class ReviewService {
         }
     }
 
+    /*
+     * 리뷰 삭제 (소프트 삭제)
+     */
+    public void deleteReview(Long id) {
+
+        // 조회
+        Review review = reviewMapper.findById(id);
+
+        // 예외 처리: 만약 해당 리뷰가 존재하지 않거나 삭제된 상태라면
+        if (review == null || "HIDDEN".equals(review.getStatus())) {
+            throw new BusinessException(ErrorCode.REVIEW_NOT_FOUND); //
+        }
+
+        reviewMapper.deleteReview(id);
+    }
 }

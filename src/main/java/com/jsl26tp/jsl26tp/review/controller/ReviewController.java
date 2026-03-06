@@ -57,4 +57,16 @@ public class ReviewController {
         return ApiResponse.ok("OK");
     }
 
+    /*
+     * 리뷰 삭제
+     * http://localhost:8090/api/reviews/{id}/delete
+     */
+    @PostMapping("/{id}/delete")
+    public ApiResponse<String> deleteReview(@PathVariable("id") Long id) {
+
+        reviewService.deleteReview(id);
+
+        return ApiResponse.ok("OK");
+    }
+
 }
