@@ -62,9 +62,21 @@
         ORDER BY name
     </select>
 
-    <!-- 화장실 상세 조회 -->
+    <!-- 기본 조회 (존재 여부 체크용 -->
     <select id="findById" resultType="Toilet">
         SELECT * FROM toilets WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <!-- 화장실 상세 조회 (평균점수 + 리뷰수 포함) -->
+    <select id="findDetailById" resultType="Toilet">
+        SELECT t.*,
+        COALESCE(AVG(r.score), 0) AS avg_score,
+        COUNT(r.id) AS review_count
+        FROM toilets t
+        LEFT JOIN reviews r ON t.id = r.toilet_id AND r.deleted_at IS NULL
+        WHERE t.id = #{id}
+        AND t.deleted_at IS NULL
+        GROUP BY t.id
     </select>
 
     <!-- 새 화장실 등록 (사용자 제보) -->
