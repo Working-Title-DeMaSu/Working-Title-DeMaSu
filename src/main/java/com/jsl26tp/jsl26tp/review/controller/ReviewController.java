@@ -80,11 +80,20 @@ public class ReviewController {
 
     /*
      * 화장실별 평균 청결도 점수
-     * /api/reviews/toilet/{toiletId}/avg-score
+     * /api/reviews/toilet/{toiletId}/avg
      */
     @GetMapping("/toilet/{toiletId}/avg")
     public ApiResponse<Double> getAvgScore(@PathVariable("toiletId") Long toiletId) {
         return ApiResponse.ok(reviewService.getAverageScore(toiletId));
+    }
+
+    /*
+     * 화장실별 총 리뷰 개수
+     * /api/reviews/toilet/{toiletId}/cnt
+     */
+    @GetMapping("/toilet/{toiletId}/cnt")
+    public ApiResponse<Integer> getReviewCount(@PathVariable("toiletId") Long toiletId) {
+        return ApiResponse.ok(reviewService.getReviewCount(toiletId));
     }
 
 }
