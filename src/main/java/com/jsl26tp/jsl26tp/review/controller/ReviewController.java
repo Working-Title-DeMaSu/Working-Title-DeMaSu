@@ -69,4 +69,13 @@ public class ReviewController {
         return ApiResponse.ok("OK");
     }
 
+    /*
+     * 특정 화장실의 리뷰 목록 조회
+     * /api/reviews/toilet/{toiletId}
+     */
+    @GetMapping("/toilet/{toiletId}")
+    public ApiResponse<List<Review>> getReviewsByToilet(@PathVariable("toiletId") Long toiletId) {
+        return ApiResponse.ok(reviewService.getReviewsByToilet(toiletId));
+    }
+
 }
