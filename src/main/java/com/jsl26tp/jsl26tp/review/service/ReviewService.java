@@ -175,5 +175,13 @@ public class ReviewService {
         return count != null ? count : 0;
     }
 
+    /*
+     * 내가 쓴 리뷰 목록 조회
+     */
+
+    public List<Review> getMyReviews(Long userId) {
+        return reviewMapper.findByUserId(userId);
+    }
+
 
 }
