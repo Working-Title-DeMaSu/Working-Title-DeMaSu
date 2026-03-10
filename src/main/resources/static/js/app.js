@@ -2,45 +2,41 @@
    トイレマップ - メインJS
 ======================================== */
 
-// ========== 카카오맵 전역 변수 ==========
-var map;          // 카카오맵 객체
+// ========== 네이버맵 전역 변수 ==========
+var map;          // 네이버맵 객체
 var markers = []; // 마커 배열
 
-// ========== 카카오맵 SDK 동적 로딩 ==========
-function loadKakaoMapSDK() {
+// ========== 네이버맵 SDK 동적 로딩 ==========
+function loadNaverMapSDK() {
     return new Promise(function(resolve, reject) {
-        // KAKAO_JS_KEY는 index.html의 인라인 스크립트에서 Thymeleaf가 주입
-        if (typeof KAKAO_JS_KEY === 'undefined' || !KAKAO_JS_KEY) {
-            reject(new Error('Kakao JS Key not found'));
+        if (typeof NAVER_CLIENT_ID === 'undefined' || !NAVER_CLIENT_ID) {
+            reject(new Error('Naver Client ID not found'));
             return;
         }
         var script = document.createElement('script');
-        script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + KAKAO_JS_KEY + '&autoload=false';
+        script.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + NAVER_CLIENT_ID;
         script.onload = function() {
-            kakao.maps.load(function() {
-                resolve();
-            });
+            resolve();
         };
         script.onerror = function() {
-            reject(new Error('Failed to load Kakao Maps script'));
+            reject(new Error('Failed to load Naver Maps script'));
         };
         document.head.appendChild(script);
     });
 }
 
-// ========== 카카오맵 초기화 ==========
+// ========== 네이버맵 초기화 ==========
 function initMap() {
-    var container = document.getElementById('map');
-    var options = {
-        center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 3
+    var mapOptions = {
+        center: new naver.maps.LatLng(37.5665, 126.9780),
+        zoom: 15,
+        zoomControl: true,
+        zoomControlOptions: {
+            position: naver.maps.Position.RIGHT_CENTER
+        }
     };
 
-    map = new kakao.maps.Map(container, options);
-
-    // 지도 컨트롤 추가 (줌 버튼)
-    var zoomControl = new kakao.maps.ZoomControl();
-    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+    map = new naver.maps.Map('map', mapOptions);
 
     // 현재 위치로 자동 이동
     if (navigator.geolocation) {
@@ -48,7 +44,7 @@ function initMap() {
             function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                var locPosition = new kakao.maps.LatLng(lat, lng);
+                var locPosition = new naver.maps.LatLng(lat, lng);
                 map.setCenter(locPosition);
             }
         );
@@ -151,7 +147,7 @@ function moveToMyLocation() {
             function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                var moveLatLng = new kakao.maps.LatLng(lat, lng);
+                var moveLatLng = new naver.maps.LatLng(lat, lng);
                 map.setCenter(moveLatLng);
             },
             function(error) {
@@ -243,13 +239,11 @@ function showToast(message) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('トイレマップ loaded!');
 
-    // 카카오맵 SDK 로딩 후 지도 초기화
-    loadKakaoMapSDK()
-        .then(function() {
-            console.log('Kakao Maps SDK loaded!');
-            initMap();
-        })
-        .catch(function(error) {
-            console.error('Failed to load Kakao Maps SDK:', error);
-        });
+    // 네이버맵 SDK는 index.html에서 정적 script 태그로 로딩됨
+    if (typeof naver !== 'undefined' && naver.maps) {
+        console.log('Naver Maps SDK ready!');
+        initMap();
+    } else {
+        console.error('Naver Maps SDK not loaded!');
+    }
 });

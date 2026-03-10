@@ -34,7 +34,7 @@ public class AuthController {
     @GetMapping("/register")
     public String registerForm(Model model) {
         model.addAttribute("user", new User());
-        return "register";
+        return "auth/register";
     }
 
     // 회원가입 처리
@@ -48,7 +48,7 @@ public class AuthController {
         if (!user.getPassword().equals(passwordConfirm)) {
             model.addAttribute("error", "パスワードが一致しません。");
             model.addAttribute("user", user);
-            return "register";
+            return "auth/register";
         }
 
         // 회원가입 실행 (검증은 UserService에서 BusinessException으로 처리)
@@ -57,7 +57,7 @@ public class AuthController {
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("user", user);
-            return "register";
+            return "auth/register";
         }
 
         redirectAttributes.addFlashAttribute("registerSuccess", true);
