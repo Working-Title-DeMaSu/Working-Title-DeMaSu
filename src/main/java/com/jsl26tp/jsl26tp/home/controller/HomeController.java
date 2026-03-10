@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @Value("${kakao.js-key}")
-    private String kakaoJsKey;
+    @Value("${naver.maps.client-id}")
+    private String naverMapsClientId;
 
     // 메인 페이지 (지도)
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("kakaoJsKey", kakaoJsKey);
+        model.addAttribute("naverMapsClientId", naverMapsClientId);
         return "index";
     }
 }
