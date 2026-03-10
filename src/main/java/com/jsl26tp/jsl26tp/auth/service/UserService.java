@@ -75,6 +75,15 @@ public class UserService {
         return user;
     }
 
+    // username으로 회원 정보 조회
+    public User findByUsername(String username) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND); // 누나 규칙 준수!
+        }
+        return user;
+    }
+
     // 회원 정보 수정
     public void updateUser(User user) {
         userMapper.updateUser(user);

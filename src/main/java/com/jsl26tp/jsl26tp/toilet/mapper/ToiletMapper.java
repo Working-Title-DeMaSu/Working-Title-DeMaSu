@@ -20,7 +20,7 @@ public interface ToiletMapper {
     // 키워드 검색 (이름, 주소)
     List<Toilet> findByKeyword(@Param("keyword") String keyword);
 
-    // 화장실 기본 조회 (삭제 여부만 체크)
+    // 화장실 기본 조회 (존재 여부만 체크)
     Toilet findById(@Param("id") Long id);
 
     // 화장실 상세 조회 (평균점수 + 리뷰수 포함)

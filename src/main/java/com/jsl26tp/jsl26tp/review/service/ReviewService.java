@@ -32,21 +32,24 @@ public class ReviewService {
     private String reviewPath;
 
     /*
+     * 내가 쓴 리뷰 목록 조회
+     */
+    public List<Review> findByUserId(Long userId) {
+        return reviewMapper.findByUserId(userId);
+    }
+
+    /*
      * 리뷰 게시
      */
-
     public void writeReview(Review review, List<MultipartFile> files) {
-
-        
         // 본문 저장
         reviewMapper.insertReview(review);
-
 
         // 파일 처리
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    saveFileToReview(review, file); //
+                    saveFileToReview(review, file);
                 }
             }
         }
@@ -57,10 +60,8 @@ public class ReviewService {
      */
     public void saveFileToReview(Review review, MultipartFile file) {
         try {
-            
             // 폴더 생성
             File uploadDir = new File(reviewPath);
-
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
@@ -77,7 +78,7 @@ public class ReviewService {
 
             reviewImageMapper.insertImage(image);
 
-        }catch(IOException e) {
+        } catch (IOException e) {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
     }
@@ -185,3 +186,4 @@ public class ReviewService {
 
 
 }
+
