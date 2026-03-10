@@ -2,7 +2,7 @@ package com.jsl26tp.jsl26tp.toilet.Controller;
 
 import com.jsl26tp.jsl26tp.common.ApiResponse;
 import com.jsl26tp.jsl26tp.config.CustomUserDetails;
-import com.jsl26tp.jsl26tp.toilet.Service.ToiletService;
+import com.jsl26tp.jsl26tp.toilet.service.ToiletService;
 import com.jsl26tp.jsl26tp.toilet.domain.Toilet;
 import com.jsl26tp.jsl26tp.toilet.domain.ToiletTag;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/toilets")
@@ -75,6 +76,25 @@ public class ToiletController {
     }
 
     //새 화장실 등록 (사용자 제보)
+    @PostMapping
+    public ApiResponse<Void> newToilet(
+            @RequestBody Toilet toilet,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        toiletService.insertToilet(toilet, user.getId());
+        return ApiResponse.ok();
+    }
+
 
     //정보 수정 제안
+    @GetMapping("/{id}/edit-request")
+    public ApiResponse<Void> editRequest(
+                @PathVariable Long id,
+                @RequestBody Map<String, String> body,
+                @AuthenticationPrincipal CustomUserDetails user){
+
+        String content = body.get("content");
+        toiletService.submitEditRequest(id, user.getId(), content);
+        return ApiResponse.ok();
+    }
 }
