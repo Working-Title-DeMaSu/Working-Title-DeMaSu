@@ -92,33 +92,9 @@
             <div class="handle-bar"></div>
         </div>
         <div class="toilet-list" id="toiletList">
-            <!-- 데모 카드 -->
-            <div class="toilet-card">
-                <div class="toilet-card-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="toilet-card-info">
-                    <div class="toilet-card-name">スターバックス 江南駅店</div>
-                    <div class="toilet-card-distance">
-                        <i class="fas fa-map-marker-alt"></i> 120m · 徒歩 2分
-                    </div>
-                    <div class="toilet-card-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <span>4.2</span>
-                    </div>
-                    <div class="toilet-card-tags">
-                        <span>清潔</span>
-                        <span>24時間</span>
-                        <span>おむつ交換台</span>
-                    </div>
-                </div>
-                <button class="btn-card-chat" title="LINE チャット">
-                    <i class="fas fa-comment-dots"></i>
-                </button>
+            <div class="toilet-list-empty">
+                <i class="fas fa-search"></i>
+                <p>周辺のトイレを検索中...</p>
             </div>
         </div>
     </div>
@@ -180,7 +156,7 @@
 </div>
 
 <script th:src="@{https://oapi.map.naver.com/openapi/v3/maps.js(ncpKeyId=${naverMapsClientId},language='ja')}"></script>
-<script th:src="@{/js/app.js(v=2)}"></script>
+<script th:src="@{/js/app.js(v=3)}"></script>
 <script th:if="${loginError}">
     document.addEventListener('DOMContentLoaded', () => openLoginModal());
 </script>

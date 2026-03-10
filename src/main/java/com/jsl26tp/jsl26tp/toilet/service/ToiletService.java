@@ -1,10 +1,12 @@
-package com.jsl26tp.jsl26tp.toilet.Service;
+package com.jsl26tp.jsl26tp.toilet.service;
 
 import com.jsl26tp.jsl26tp.common.BusinessException;
 import com.jsl26tp.jsl26tp.common.ErrorCode;
 import com.jsl26tp.jsl26tp.toilet.domain.Toilet;
+import com.jsl26tp.jsl26tp.toilet.domain.ToiletEditRequest;
 import com.jsl26tp.jsl26tp.toilet.domain.ToiletTag;
 import com.jsl26tp.jsl26tp.toilet.mapper.RecentViewMapper;
+import com.jsl26tp.jsl26tp.toilet.mapper.ToiletEditRequestMapper;
 import com.jsl26tp.jsl26tp.toilet.mapper.ToiletMapper;
 import com.jsl26tp.jsl26tp.toilet.mapper.ToiletTagMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class ToiletService {
     private final ToiletMapper toiletMapper;
     private final RecentViewMapper recentViewMapper;
     private final ToiletTagMapper toiletTagMapper;
+    private final ToiletEditRequestMapper toiletEditRequestMapper;
 
     //주변 화장실 검색 (위도, 경도, 반경)
     public List<Toilet> findNearby(double lat, double lng, int radius) {
@@ -57,7 +60,7 @@ public class ToiletService {
     public Toilet getDetail(Long id, Long userId) {
 
         //화장실 존재 여부
-        Toilet toilet = toiletMapper.findById(id);
+        Toilet toilet = toiletMapper.findDetailById(id);
 
         if(toilet == null) {
             throw new BusinessException(ErrorCode.TOILET_NOT_FOUND);
@@ -84,7 +87,26 @@ public class ToiletService {
     }
 
     //새 화장실 등록 (사용자 제보)
-
+    public void insertToilet(Toilet toilet, Long userId) {
+            toilet.setSource("USER");
+            toilet.setStatus("PENDING");
+            toilet.setByUserId(userId);
+            toiletMapper.insertToilet(toilet);
+    }
 
     //정보 수정 제안
+    public void submitEditRequest(Long toiletId, Long userId, String content) {
+
+            //화장실 존재 여부
+            Toilet toilet = toiletMapper.findById(toiletId);
+            if(toilet == null) {
+                throw new BusinessException(ErrorCode.TOILET_NOT_FOUND);
+            }
+
+            ToiletEditRequest request = new ToiletEditRequest();
+            request.setToiletId(toiletId);
+            request.setUserId(userId);
+            request.setContent(content);
+            toiletEditRequestMapper.insertRequest(request);
+    }
 }

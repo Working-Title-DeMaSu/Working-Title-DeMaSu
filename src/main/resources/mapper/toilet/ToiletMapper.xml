@@ -17,6 +17,7 @@
           AND deleted_at IS NULL
         HAVING distance &lt;= #{radius}
         ORDER BY distance
+        LIMIT 50
     </select>
 
     <!-- 필터 검색 -->
@@ -50,6 +51,7 @@
           </if>
         HAVING distance &lt;= #{radius}
         ORDER BY distance
+        LIMIT 50
     </select>
 
     <!-- 키워드 검색 (이름, 주소) -->
@@ -60,6 +62,7 @@
           AND (name LIKE CONCAT('%', #{keyword}, '%')
                OR address LIKE CONCAT('%', #{keyword}, '%'))
         ORDER BY name
+        LIMIT 50
     </select>
 
     <!-- 기본 조회 (존재 여부 체크용 -->
@@ -84,29 +87,36 @@
         INSERT INTO toilets (name, address, latitude, longitude, open_hours,
                              is_24hours, is_wheelchair, has_paper, has_soap,
                              has_sanitary, has_diaper, toilet_type, has_emergency,
-                             source, status, by_user_id)
+                             phone, has_cctv, male_toilet_count, male_urinal_count,
+                             female_toilet_count, source, status, by_user_id)
         VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{openHours},
                 #{is24hours}, #{isWheelchair}, #{hasPaper}, #{hasSoap},
                 #{hasSanitary}, #{hasDiaper}, #{toiletType}, #{hasEmergency},
-                #{source}, #{status}, #{byUserId})
+                #{phone}, #{hasCctv}, #{maleToiletCount}, #{maleUrinalCount},
+                #{femaleToiletCount}, #{source}, #{status}, #{byUserId})
     </insert>
 
     <!-- 화장실 정보 수정 (관리자) -->
     <update id="updateToilet" parameterType="Toilet">
         UPDATE toilets
-        SET name          = #{name},
-            address       = #{address},
-            latitude      = #{latitude},
-            longitude     = #{longitude},
-            open_hours    = #{openHours},
-            is_24hours    = #{is24hours},
-            is_wheelchair = #{isWheelchair},
-            has_paper     = #{hasPaper},
-            has_soap      = #{hasSoap},
-            has_sanitary  = #{hasSanitary},
-            has_diaper    = #{hasDiaper},
-            toilet_type   = #{toiletType},
-            has_emergency = #{hasEmergency}
+        SET name               = #{name},
+            address            = #{address},
+            latitude           = #{latitude},
+            longitude          = #{longitude},
+            open_hours         = #{openHours},
+            is_24hours         = #{is24hours},
+            is_wheelchair      = #{isWheelchair},
+            has_paper          = #{hasPaper},
+            has_soap           = #{hasSoap},
+            has_sanitary       = #{hasSanitary},
+            has_diaper         = #{hasDiaper},
+            toilet_type        = #{toiletType},
+            has_emergency      = #{hasEmergency},
+            phone              = #{phone},
+            has_cctv           = #{hasCctv},
+            male_toilet_count  = #{maleToiletCount},
+            male_urinal_count  = #{maleUrinalCount},
+            female_toilet_count = #{femaleToiletCount}
         WHERE id = #{id}
     </update>
 

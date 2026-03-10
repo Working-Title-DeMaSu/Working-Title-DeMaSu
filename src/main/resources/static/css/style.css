@@ -355,7 +355,7 @@ body {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
     z-index: 20;
-    max-height: 130px;
+    max-height: 35vh;
     transition: max-height 0.3s ease;
 }
 
@@ -377,7 +377,7 @@ body {
 .toilet-list {
     overflow-y: auto;
     padding: 0 20px 20px;
-    max-height: calc(130px - 36px);
+    max-height: calc(35vh - 36px);
 }
 
 .toilet-list-empty {
@@ -771,6 +771,183 @@ body {
 .toilet-list::-webkit-scrollbar-thumb {
     background: var(--gray-200);
     border-radius: var(--radius-full);
+}
+
+/* ========== 인포윈도우 (지도 마커 클릭) ========== */
+.info-window {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    min-width: 220px;
+    max-width: 300px;
+    box-shadow: var(--shadow-lg);
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.iw-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+}
+
+.iw-address {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+}
+
+.iw-address i {
+    color: var(--accent);
+    margin-right: 4px;
+}
+
+.iw-distance {
+    font-size: 12px;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+}
+
+.iw-distance i {
+    margin-right: 4px;
+}
+
+.iw-rating {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.iw-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.iw-tag {
+    padding: 2px 8px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.iw-phone {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+}
+
+.iw-phone i {
+    color: var(--primary);
+    margin-right: 4px;
+}
+
+.iw-detail {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.iw-detail a {
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.iw-detail a:hover {
+    text-decoration: underline;
+}
+
+/* ========== 상세 카드 (바텀시트 내) ========== */
+.detail-card {
+    padding: 4px 0;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.detail-back {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--gray-200);
+    background: var(--white);
+    color: var(--gray-700);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.detail-back:hover {
+    background: var(--gray-50);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.detail-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.detail-address,
+.detail-phone,
+.detail-hours {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detail-address i { color: var(--accent); }
+.detail-phone i { color: var(--primary); }
+.detail-hours i { color: #FFB800; }
+
+.detail-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 16px 0 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.detail-facilities {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.detail-facility-item {
+    font-size: 13px;
+    color: var(--gray-700);
+    padding: 6px 0;
+}
+
+.detail-count {
+    font-size: 13px;
+    color: var(--gray-700);
+    padding: 4px 0;
+}
+
+.detail-score {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-700);
 }
 
 /* ========== 반응형 ========== */

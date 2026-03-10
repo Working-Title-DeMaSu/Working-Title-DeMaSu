@@ -19,6 +19,11 @@ public class Toilet {
     private Integer hasDiaper;
     private String toiletType;       // WESTERN, EASTERN
     private Integer hasEmergency;
+    private String phone;
+    private Integer hasCctv;
+    private Integer maleToiletCount;
+    private Integer maleUrinalCount;
+    private Integer femaleToiletCount;
     private String source;           // PUBLIC_API, USER
     private String status;           // APPROVED, PENDING, REJECTED
     private Long byUserId;
