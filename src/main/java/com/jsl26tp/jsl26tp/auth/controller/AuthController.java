@@ -5,6 +5,7 @@ import com.jsl26tp.jsl26tp.common.BusinessException;
 import com.jsl26tp.jsl26tp.auth.domain.User;
 import com.jsl26tp.jsl26tp.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,16 @@ public class AuthController {
 
     private final UserService userService;
 
+    @Value("${naver.maps.client-id}")
+    private String naverMapsClientId;
+
     // 로그인 페이지 (모달 방식이므로 메인으로 리다이렉트, error/logout 파라미터 전달)
     @GetMapping("/login")
     public String login(@RequestParam(value = "error", required = false) String error,
                         @RequestParam(value = "logout", required = false) String logout,
                         Model model) {
+        // index.html에서 Naver Maps API 로드에 필요
+        model.addAttribute("naverMapsClientId", naverMapsClientId);
         if (error != null) {
             model.addAttribute("loginError", true);
         }

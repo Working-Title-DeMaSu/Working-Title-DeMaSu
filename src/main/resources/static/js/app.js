@@ -11,6 +11,7 @@ var currentLat = 37.5665;  // 현재 위도 (기본값: 서울)
 var currentLng = 126.9780; // 현재 경도
 var currentFilter = 'all'; // 현재 필터
 var myLocationMarker = null; // 내 위치 마커
+var SEARCH_RADIUS = 800;     // 검색 반경 (800m 고정)
 
 // ========== 네이버맵 초기화 ==========
 function initMap() {
@@ -38,16 +39,16 @@ function initMap() {
                 showMyLocationMarker(currentLat, currentLng);
 
                 // 주변 화장실 로딩
-                loadNearbyToilets(currentLat, currentLng, 500);
+                loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
             },
             function(error) {
                 console.log('位置情報の取得に失敗:', error);
                 // 기본 위치(서울)로 화장실 로딩
-                loadNearbyToilets(currentLat, currentLng, 500);
+                loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
             }
         );
     } else {
-        loadNearbyToilets(currentLat, currentLng, 500);
+        loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
     }
 
     // 지도 이동 완료 시 화장실 다시 로딩
@@ -55,10 +56,11 @@ function initMap() {
         var center = map.getCenter();
         currentLat = center.lat();
         currentLng = center.lng();
+        var radius = SEARCH_RADIUS;
         if (currentFilter === 'all') {
-            loadNearbyToilets(currentLat, currentLng, 500);
+            loadNearbyToilets(currentLat, currentLng, radius);
         } else {
-            loadFilteredToilets(currentLat, currentLng, 500, currentFilter);
+            loadFilteredToilets(currentLat, currentLng, radius, currentFilter);
         }
     });
 }
@@ -312,9 +314,9 @@ function showDetailSidebar(toilet) {
 // ========== 리스트로 돌아가기 ==========
 function backToList() {
     if (currentFilter === 'all') {
-        loadNearbyToilets(currentLat, currentLng, 500);
+        loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
     } else {
-        loadFilteredToilets(currentLat, currentLng, 500, currentFilter);
+        loadFilteredToilets(currentLat, currentLng, SEARCH_RADIUS, currentFilter);
     }
 }
 
@@ -362,11 +364,12 @@ document.querySelectorAll('.filter-tag').forEach(function(tag) {
         this.classList.add('active');
 
         currentFilter = this.dataset.filter;
+        var radius = SEARCH_RADIUS;
 
         if (currentFilter === 'all') {
-            loadNearbyToilets(currentLat, currentLng, 500);
+            loadNearbyToilets(currentLat, currentLng, radius);
         } else {
-            loadFilteredToilets(currentLat, currentLng, 500, currentFilter);
+            loadFilteredToilets(currentLat, currentLng, radius, currentFilter);
         }
     });
 });
@@ -384,7 +387,7 @@ if (searchInput) {
                 searchToilets(keyword);
             } else if (keyword.length === 0) {
                 // 검색어 지우면 주변 화장실 다시 로딩
-                loadNearbyToilets(currentLat, currentLng, 500);
+                loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
             }
         }, 500);
     });
