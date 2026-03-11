@@ -1,0 +1,464 @@
+/* ========================================
+   レビュー作成ページ スタイル
+======================================== */
+
+/* ─── Layout ─── */
+.review-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ─── 왼쪽 비주얼 ─── */
+.review-visual {
+    width: 40%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary), #1DB5A8, #16A09A);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.visual-content {
+    text-align: center;
+    color: white;
+    z-index: 2;
+    padding: 40px;
+}
+
+.visual-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.visual-content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.visual-content p {
+    font-size: 15px;
+    line-height: 1.8;
+    opacity: 0.85;
+}
+
+.visual-decoration {
+    position: absolute;
+    inset: 0;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.circle-1 { width: 400px; height: 400px; top: -100px; right: -100px; }
+.circle-2 { width: 300px; height: 300px; bottom: -80px; left: -80px; }
+.circle-3 { width: 200px; height: 200px; bottom: 20%; right: 10%; }
+
+/* 화장실 정보 카드 */
+.toilet-info-card {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-top: 28px;
+    text-align: left;
+    backdrop-filter: blur(8px);
+}
+
+.toilet-info-card .label {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 6px;
+}
+
+.toilet-info-card .toilet-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.toilet-info-card .toilet-addr {
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+/* ─── 오른쪽 폼 영역 ─── */
+.review-form-area {
+    width: 60%;
+    padding: 40px 60px;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.form-header {
+    margin-bottom: 28px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray-400);
+    text-decoration: none;
+    font-size: 13px;
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.back-link:hover {
+    color: var(--primary);
+}
+
+.form-header h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+}
+
+.form-header p {
+    font-size: 14px;
+    color: var(--gray-400);
+}
+
+/* ─── 폼 그룹 ─── */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+
+.required {
+    color: var(--accent);
+}
+
+/* ─── textarea ─── */
+.textarea-group {
+    align-items: flex-start;
+}
+
+.textarea-group i {
+    margin-top: 2px;
+}
+
+.textarea-group textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+    width: 100%;
+}
+
+.char-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 4px;
+}
+
+/* ─── 청결도 별점 ─── */
+.score-section {
+    margin-bottom: 20px;
+}
+
+.score-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 10px;
+}
+
+.star-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.star-group input[type="radio"] {
+    display: none;
+}
+
+.star-group .star {
+    font-size: 32px;
+    cursor: pointer;
+    color: var(--gray-200);
+    transition: color 0.15s ease, transform 0.15s ease;
+    user-select: none;
+}
+
+.star-group .star:hover,
+.star-group .star.active {
+    color: #f59e0b;
+}
+
+.star-group .star:hover {
+    transform: scale(1.15);
+}
+
+.score-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-500);
+    margin-left: 8px;
+}
+
+/* ─── 태그 ─── */
+.tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--gray-200);
+    background: white;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.tag-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.tag-btn.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.tag-btn i {
+    margin-right: 4px;
+}
+
+/* ─── 이미지 업로드 ─── */
+.image-upload-section {
+    margin-bottom: 20px;
+}
+
+.image-upload-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+
+.drop-zone {
+    border: 2px dashed var(--gray-200);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(29, 200, 187, 0.04);
+}
+
+.drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.drop-zone-icon {
+    font-size: 32px;
+    color: var(--gray-300);
+    margin-bottom: 10px;
+}
+
+.drop-zone p {
+    font-size: 13px;
+    color: var(--gray-400);
+    line-height: 1.6;
+}
+
+.drop-zone span.highlight {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.drop-zone .file-limit {
+    font-size: 11px;
+    color: var(--gray-300);
+    margin-top: 6px;
+}
+
+/* 미리보기 그리드 */
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.preview-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: var(--gray-200);
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-item .remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.preview-item .remove-btn:hover {
+    background: var(--accent);
+}
+
+.preview-count {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 6px;
+}
+
+/* ─── 에러 메시지 ─── */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    color: var(--accent);
+    font-size: 13px;
+}
+
+/* ─── 구분선 ─── */
+.divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 4px 0 20px;
+}
+
+/* ─── 제출 버튼 ─── */
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), #16A09A);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(29, 200, 187, 0.35);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.upload-notice {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+.upload-notice i {
+    color: var(--primary);
+    margin-right: 4px;
+}
+
+.review-notice {
+    font-size: 12px;
+    color: var(--gray-400);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.review-notice i {
+    color: #f59e0b;
+    margin-right: 4px;
+}
+
+/* ─── 반응형 ─── */
+@media (max-width: 900px) {
+    .review-container { flex-direction: column; }
+    .review-visual { width: 100%; min-height: 200px; }
+    .visual-content h1 { font-size: 22px; }
+    .toilet-info-card { display: none; }
+    .review-form-area { width: 100%; padding: 24px 20px; }
+    .preview-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .preview-grid { grid-template-columns: repeat(2, 1fr); }
+}
