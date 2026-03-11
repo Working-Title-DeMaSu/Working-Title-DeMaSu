@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+=================================================================
+管理者専用 SQL (AdminMapper.xml)
+=================================================================
+파일 위치: resources/mapper/admin/AdminMapper.xml
+
+【공통코드 규칙 적용 사항】
+✅ #{} 만 사용 (${} 절대 금지 — SQL Injection 방지)
+✅ namespace = Mapper 인터페이스 풀 경로
+✅ resultType = admin.domain 패키지의 도메인 클래스
+✅ 소프트 삭제 대상 테이블: WHERE deleted_at IS NULL 조건 필수
+   - toilets (O), reviews (O), inquiries (O) → 필터 적용
+   - users (X) → status 필드로 관리
+   - reports (X) → deleted_at 없음
+=================================================================
+-->
+<mapper namespace="com.jsl26tp.jsl26tp.admin.mapper.AdminMapper">
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 1. 회원 관리 (FR-SCR004-1, FR-SCR004-2)               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <!--
+    회원 목록 조회 (검색 + 필터 + 페이징)
+    - keyword: username / nickname / email LIKE 검색 (동적)
+    - status: ACTIVE / SUSPENDED / DELETED 필터 (동적)
+    - reviewCount: 해당 회원이 작성한 리뷰 수 (서브쿼리, deleted_at IS NULL)
+    - reportCount: 해당 회원의 리뷰가 신고 받은 수 (서브쿼리)
+    - 정렬: 최신 가입자 우선 (created_at DESC)
+    -->
+    <select id="findUserList" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminUser">
+        SELECT
+        u.id,
+        u.username,
+        u.nickname,
+        u.email,
+        u.phone,
+        u.gender,
+        u.birthdate,
+        u.icon_url       AS iconUrl,
+        u.role,
+        u.social_type    AS socialType,
+        u.status,
+        u.suspend_until  AS suspendUntil,
+        u.created_at     AS createdAt,
+        /* 작성 리뷰 수 (삭제된 리뷰 제외) */
+        (SELECT COUNT(*)
+        FROM reviews r
+        WHERE r.user_id = u.id
+        AND r.deleted_at IS NULL) AS reviewCount,
+        /* 신고 받은 수 (해당 회원의 리뷰가 신고된 건수) */
+        (SELECT COUNT(*)
+        FROM reports rp
+        WHERE rp.target_type = 'REVIEW'
+        AND rp.target_id IN (
+        SELECT r2.id FROM reviews r2 WHERE r2.user_id = u.id
+        )) AS reportCount
+        FROM users u
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                u.username LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+                OR u.email LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+        </where>
+        ORDER BY u.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 회원 총 건수 (페이징 계산용) — findUserList와 동일한 WHERE 조건 -->
+    <select id="countUsers" resultType="int">
+        SELECT COUNT(*)
+        FROM users u
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                u.username LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+                OR u.email LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 회원 상세 조회 (리뷰수 + 신고받은수 포함) -->
+    <select id="findUserById" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminUser">
+        SELECT
+        u.id, u.username, u.nickname, u.email, u.phone,
+        u.gender, u.birthdate,
+        u.icon_url       AS iconUrl,
+        u.role,
+        u.social_type    AS socialType,
+        u.status,
+        u.suspend_until  AS suspendUntil,
+        u.created_at     AS createdAt,
+        (SELECT COUNT(*) FROM reviews r
+        WHERE r.user_id = u.id AND r.deleted_at IS NULL) AS reviewCount,
+        (SELECT COUNT(*) FROM reports rp
+        WHERE rp.target_type = 'REVIEW'
+        AND rp.target_id IN (
+        SELECT r2.id FROM reviews r2 WHERE r2.user_id = u.id
+        )) AS reportCount
+        FROM users u
+        WHERE u.id = #{id}
+    </select>
+
+    <!--
+    회원 상태 변경 (정지 / 해제 / 삭제)
+    - 정지:   status='SUSPENDED', suspend_until=해제일시
+    - 영구정지: status='SUSPENDED', suspend_until=NULL
+    - 해제:   status='ACTIVE', suspend_until=NULL
+    - 삭제:   status='DELETED', suspend_until=NULL
+    -->
+    <update id="updateUserStatus">
+        UPDATE users
+        SET status = #{status},
+        suspend_until = #{suspendUntil}
+        WHERE id = #{id}
+    </update>
+
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 2. 신고 관리 (FR-SCR004-3)                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <!--
+    신고 목록 조회 (PENDING 우선 정렬)
+    - reports 기준으로 신고자(users) + 리뷰(reviews) + 화장실(toilets) JOIN
+    - targetName: CASE로 분기 (리뷰내용 앞 50자 or 화장실이름)
+    - targetWriter: 리뷰인 경우만 작성자 닉네임
+    - PENDING이 항상 맨 위에 오도록 CASE 정렬
+    -->
+    <select id="findReportList" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminReport">
+        SELECT
+        rp.id,
+        rp.reporter_id    AS reporterId,
+        reporter.nickname AS reporterNickname,
+        rp.target_type    AS targetType,
+        rp.target_id      AS targetId,
+        CASE
+        WHEN rp.target_type = 'REVIEW' THEN LEFT(rev.content, 50)
+        WHEN rp.target_type = 'TOILET' THEN tlt.name
+        END AS targetName,
+        CASE
+        WHEN rp.target_type = 'REVIEW' THEN rev_user.nickname
+        END AS targetWriter,
+        rp.reason,
+        rp.status,
+        rp.admin_note     AS adminNote,
+        rp.created_at     AS createdAt,
+        rp.processed_at   AS processedAt
+        FROM reports rp
+        /* 신고자 정보 */
+        JOIN users reporter ON rp.reporter_id = reporter.id
+        /* 리뷰 대상 (target_type='REVIEW'일 때만 매칭) */
+        LEFT JOIN reviews rev
+        ON rp.target_type = 'REVIEW' AND rp.target_id = rev.id
+        LEFT JOIN users rev_user
+        ON rev.user_id = rev_user.id
+        /* 화장실 대상 (target_type='TOILET'일 때만 매칭) */
+        LEFT JOIN toilets tlt
+        ON rp.target_type = 'TOILET' AND rp.target_id = tlt.id
+        <where>
+            <if test="status != null and status != ''">
+                AND rp.status = #{status}
+            </if>
+            <if test="targetType != null and targetType != ''">
+                AND rp.target_type = #{targetType}
+            </if>
+        </where>
+        ORDER BY
+        CASE WHEN rp.status = 'PENDING' THEN 0 ELSE 1 END,
+        rp.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 신고 총 건수 -->
+    <select id="countReports" resultType="int">
+        SELECT COUNT(*)
+        FROM reports rp
+        <where>
+            <if test="status != null and status != ''">
+                AND rp.status = #{status}
+            </if>
+            <if test="targetType != null and targetType != ''">
+                AND rp.target_type = #{targetType}
+            </if>
+        </where>
+    </select>
+
+    <!-- 신고 상세 조회 -->
+    <select id="findReportById" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminReport">
+        SELECT
+        rp.id,
+        rp.reporter_id    AS reporterId,
+        reporter.nickname AS reporterNickname,
+        rp.target_type    AS targetType,
+        rp.target_id      AS targetId,
+        CASE
+        WHEN rp.target_type = 'REVIEW' THEN LEFT(rev.content, 50)
+        WHEN rp.target_type = 'TOILET' THEN tlt.name
+        END AS targetName,
+        CASE
+        WHEN rp.target_type = 'REVIEW' THEN rev_user.nickname
+        END AS targetWriter,
+        rp.reason,
+        rp.status,
+        rp.admin_note     AS adminNote,
+        rp.created_at     AS createdAt,
+        rp.processed_at   AS processedAt
+        FROM reports rp
+        JOIN users reporter ON rp.reporter_id = reporter.id
+        LEFT JOIN reviews rev ON rp.target_type = 'REVIEW' AND rp.target_id = rev.id
+        LEFT JOIN users rev_user ON rev.user_id = rev_user.id
+        LEFT JOIN toilets tlt ON rp.target_type = 'TOILET' AND rp.target_id = tlt.id
+        WHERE rp.id = #{id}
+    </select>
+
+    <!-- 신고 상태 변경: PENDING → PROCESSED(승인) / DISMISSED(기각) -->
+    <update id="updateReportStatus">
+        UPDATE reports
+        SET status = #{status},
+        admin_note = #{adminNote},
+        processed_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 신고 승인 시 리뷰 비표시 (reviews.status → 'HIDDEN') -->
+    <update id="hideReview">
+        UPDATE reviews SET status = 'HIDDEN' WHERE id = #{reviewId}
+    </update>
+
+    <!-- 신고 승인 시 화장실 반려 (toilets.status → 'REJECTED') -->
+    <update id="rejectToiletByReport">
+        UPDATE toilets SET status = 'REJECTED' WHERE id = #{toiletId}
+    </update>
+
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 3. 화장실 승인 (FR-SCR004-4)                          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <!--
+    화장실 목록 조회
+    ✅ deleted_at IS NULL 필수 (소프트 삭제 대상 테이블)
+    - 제보자(users) LEFT JOIN
+    - PENDING 우선 정렬
+    -->
+    <select id="findToiletList" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminToilet">
+        SELECT
+        t.id, t.name, t.address, t.latitude, t.longitude,
+        t.open_hours     AS openHours,
+        t.is_24hours     AS is24hours,
+        t.is_wheelchair  AS isWheelchair,
+        t.has_paper      AS hasPaper,
+        t.has_soap       AS hasSoap,
+        t.has_sanitary   AS hasSanitary,
+        t.has_diaper     AS hasDiaper,
+        t.toilet_type    AS toiletType,
+        t.has_emergency  AS hasEmergency,
+        t.source,
+        t.status,
+        t.by_user_id     AS byUserId,
+        u.nickname       AS byUserNickname,
+        t.created_at     AS createdAt
+        FROM toilets t
+        LEFT JOIN users u ON t.by_user_id = u.id
+        WHERE t.deleted_at IS NULL
+        <if test="status != null and status != ''">
+            AND t.status = #{status}
+        </if>
+        ORDER BY
+        CASE WHEN t.status = 'PENDING' THEN 0 ELSE 1 END,
+        t.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 화장실 총 건수 (deleted_at IS NULL 필터) -->
+    <select id="countToilets" resultType="int">
+        SELECT COUNT(*)
+        FROM toilets t
+        WHERE t.deleted_at IS NULL
+        <if test="status != null and status != ''">
+            AND t.status = #{status}
+        </if>
+    </select>
+
+    <!-- 화장실 상세 조회 (deleted_at IS NULL 필터) -->
+    <select id="findToiletById" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminToilet">
+        SELECT
+        t.id, t.name, t.address, t.latitude, t.longitude,
+        t.open_hours     AS openHours,
+        t.is_24hours     AS is24hours,
+        t.is_wheelchair  AS isWheelchair,
+        t.has_paper      AS hasPaper,
+        t.has_soap       AS hasSoap,
+        t.has_sanitary   AS hasSanitary,
+        t.has_diaper     AS hasDiaper,
+        t.toilet_type    AS toiletType,
+        t.has_emergency  AS hasEmergency,
+        t.source,
+        t.status,
+        t.by_user_id     AS byUserId,
+        u.nickname       AS byUserNickname,
+        t.created_at     AS createdAt
+        FROM toilets t
+        LEFT JOIN users u ON t.by_user_id = u.id
+        WHERE t.id = #{id}
+        AND t.deleted_at IS NULL
+    </select>
+
+    <!-- 화장실 승인: PENDING → APPROVED (이미 처리된 건은 영향행 0) -->
+    <update id="approveToilet">
+        UPDATE toilets
+        SET status = 'APPROVED'
+        WHERE id = #{id} AND status = 'PENDING'
+    </update>
+
+    <!-- 화장실 반려: PENDING → REJECTED (이미 처리된 건은 영향행 0) -->
+    <update id="rejectToilet">
+        UPDATE toilets
+        SET status = 'REJECTED'
+        WHERE id = #{id} AND status = 'PENDING'
+    </update>
+
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 4. 문의 관리 (FR-SCR004-5)                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <!--
+    문의 목록 조회
+    ✅ deleted_at IS NULL 필수 (소프트 삭제 대상 테이블)
+    - 작성자(writer) + 답변 관리자(admin) JOIN
+    - keyword: 제목 / 내용 LIKE 검색
+    - WAITING 우선 정렬 (미답변이 항상 위)
+    -->
+    <select id="findInquiryList" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminInquiry">
+        SELECT
+        i.id,
+        i.writer_id       AS writerId,
+        writer.nickname   AS writerNickname,
+        writer.email      AS writerEmail,
+        i.admin_id        AS adminId,
+        admin_user.nickname AS adminNickname,
+        i.title,
+        i.content,
+        i.status,
+        i.answer,
+        i.answered_at     AS answeredAt,
+        i.created_at      AS createdAt
+        FROM inquiries i
+        JOIN users writer ON i.writer_id = writer.id
+        LEFT JOIN users admin_user ON i.admin_id = admin_user.id
+        WHERE i.deleted_at IS NULL
+        <if test="status != null and status != ''">
+            AND i.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+            i.title LIKE CONCAT('%', #{keyword}, '%')
+            OR i.content LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY
+        CASE WHEN i.status = 'WAITING' THEN 0 ELSE 1 END,
+        i.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 문의 총 건수 (deleted_at IS NULL 필터) -->
+    <select id="countInquiries" resultType="int">
+        SELECT COUNT(*)
+        FROM inquiries i
+        WHERE i.deleted_at IS NULL
+        <if test="status != null and status != ''">
+            AND i.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+            i.title LIKE CONCAT('%', #{keyword}, '%')
+            OR i.content LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+    </select>
+
+    <!-- 문의 상세 조회 -->
+    <select id="findInquiryById" resultType="com.jsl26tp.jsl26tp.admin.domain.AdminInquiry">
+        SELECT
+        i.id,
+        i.writer_id       AS writerId,
+        writer.nickname   AS writerNickname,
+        writer.email      AS writerEmail,
+        i.admin_id        AS adminId,
+        admin_user.nickname AS adminNickname,
+        i.title,
+        i.content,
+        i.status,
+        i.answer,
+        i.answered_at     AS answeredAt,
+        i.created_at      AS createdAt
+        FROM inquiries i
+        JOIN users writer ON i.writer_id = writer.id
+        LEFT JOIN users admin_user ON i.admin_id = admin_user.id
+        WHERE i.id = #{id}
+    </select>
+
+    <!--
+    문의 답변 등록
+    - answer: 관리자 답변 내용
+    - admin_id: 답변한 관리자 ID
+    - status → 'ANSWERED'
+    - answered_at → NOW()
+    -->
+    <update id="answerInquiry">
+        UPDATE inquiries
+        SET answer = #{answer},
+        admin_id = #{adminId},
+        status = 'ANSWERED',
+        answered_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
