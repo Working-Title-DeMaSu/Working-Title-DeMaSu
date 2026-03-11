@@ -1,207 +1,312 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>トイレマップ - 韓国のトイレを探す</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>トイレマップ - デマス</title>
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
-
-<!-- ========== 전체 컨테이너 ========== -->
-<div class="app-container">
-
-    <!-- ========== 지도 영역 (전체 화면) ========== -->
-    <div class="map-area" id="mapArea">
-
-        <!-- 상단 오버레이: 검색바 + 필터 -->
-        <div class="map-overlay-top">
-
-            <!-- 헤더: 로고 + 로그인 -->
-            <div class="top-header">
-                <div class="logo">
-                    <i class="fas fa-restroom"></i>
-                    <span>トイレマップ</span>
-                </div>
-                <div class="header-actions">
-                    <!-- 비로그인 시 -->
-                    <div sec:authorize="!isAuthenticated()">
-                        <button class="btn-login" onclick="openLoginModal()">
-                            <i class="fas fa-sign-in-alt"></i> ログイン
-                        </button>
-                    </div>
-                    <!-- 로그인 시 -->
-                    <div sec:authorize="isAuthenticated()" class="user-info">
-                        <img th:src="${#authentication.principal.iconUrl}" alt="icon" class="user-icon">
-                        <span sec:authentication="principal.nickname" class="user-nickname"></span>
-                        <button class="btn-icon" onclick="toggleUserMenu()">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div class="user-menu" id="userMenu">
-                            <a href="/mypage"><i class="fas fa-user"></i> マイページ</a>
-                            <a href="/inquiry"><i class="fas fa-envelope"></i> お問い合わせ</a>
-                            <form th:action="@{/logout}" method="post">
-                                <button type="submit"><i class="fas fa-sign-out-alt"></i> ログアウト</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 검색바 -->
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="地域、建物名で検索">
-            </div>
-
-            <!-- 필터 태그 -->
-            <div class="filter-tags">
-                <button class="filter-tag active" data-filter="all">すべて</button>
-                <button class="filter-tag" data-filter="is24hours">24時間</button>
-                <button class="filter-tag" data-filter="isWheelchair">車椅子対応</button>
-                <button class="filter-tag" data-filter="hasDiaper">おむつ交換台</button>
-                <button class="filter-tag" data-filter="hasPaper">清潔な所</button>
-            </div>
-        </div>
-
-        <!-- 현재 위치 버튼 -->
-        <button class="btn-my-location" onclick="moveToMyLocation()">
-            <i class="fas fa-crosshairs"></i>
-        </button>
-
-        <!-- 지도 -->
-        <div id="map" class="map-container">
-            <!-- 화장실 마커 아이콘들 (데모) -->
-            <div class="demo-marker demo-marker-1"><i class="fas fa-bars"></i></div>
-            <div class="demo-marker demo-marker-2 orange"><i class="fas fa-bars"></i></div>
-            <div class="demo-marker demo-marker-3"><i class="fas fa-bars"></i></div>
-            <p class="map-placeholder">🗺️ ここに実際の地図APIが入ります (Kakao Map)</p>
-        </div>
-
-        <!-- 가장 가까운 화장실 버튼 (지도 하단 중앙) -->
-        <div class="nearest-btn-wrap">
-            <button class="btn-nearest" onclick="findNearest()">
-                <i class="fas fa-clock"></i> 最も近いトイレ
-            </button>
-        </div>
-
-    </div>
-
-    <!-- ========== 바텀시트 (아래에서 올라오는 패널) ========== -->
-    <div class="bottom-sheet" id="bottomSheet">
-
-        <!-- 드래그 핸들 -->
-        <div class="sheet-handle" id="sheetHandle">
-            <div class="handle-bar"></div>
-        </div>
-
-        <!-- 화장실 리스트 -->
-        <div class="toilet-list" id="toiletList">
-
-            <!-- 기본 카드 (데모) -->
-            <div class="toilet-card">
-                <div class="toilet-card-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="toilet-card-info">
-                    <div class="toilet-card-name">スターバックス 江南駅店</div>
-                    <div class="toilet-card-distance">
-                        📍 120m · 徒歩 2分
-                    </div>
-                    <div class="toilet-card-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <span>4.2</span>
-                    </div>
-                    <div class="toilet-card-tags">
-                        <span>清潔</span>
-                        <span>24時間</span>
-                        <span>おむつ交換台</span>
-                    </div>
-                </div>
-                <button class="btn-card-chat" title="LINE チャット">
-                    <i class="fas fa-comment-dots"></i>
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-</div>
-
-<!-- ========== 로그인 모달 ========== -->
-<div class="modal-overlay" id="loginModal" onclick="closeLoginModal(event)">
-    <div class="login-modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeLoginModal()">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="modal-logo">
-            <i class="fas fa-restroom"></i>
-            <h2>トイレマップ</h2>
-            <p>韓国のトイレを簡単に見つけよう</p>
-        </div>
-        <form th:action="@{/login}" method="post" class="login-form">
-            <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" name="username" placeholder="ユーザーID" required>
-            </div>
-            <div class="input-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" name="password" placeholder="パスワード" required>
-            </div>
-            <div class="error-message" id="loginErrorMsg"
-                 th:if="${loginError}" style="display:block;">
-                <i class="fas fa-exclamation-circle"></i>
-                IDまたはパスワードが正しくありません。
-            </div>
-            <button type="submit" class="btn-submit">ログイン</button>
-        </form>
-        <div class="divider"><span>または</span></div>
-        <button class="btn-google" onclick="googleLogin()">
-            <svg width="18" height="18" viewBox="0 0 18 18">
-                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-                <path fill="#34A853" d="M9.003 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9.003 18z"/>
-                <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
-                <path fill="#EA4335" d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.002 0 5.48 0 2.438 2.017.956 4.958L3.964 7.29c.708-2.127 2.692-3.71 5.036-3.71z"/>
+<!-- Header -->
+<header class="header">
+    <div class="logo" onclick="location.href='/'" style="cursor: pointer;">
+        <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
             </svg>
-            Googleでログイン
-        </button>
-        <div class="register-link">
-            <span>アカウントをお持ちでないですか？</span>
-            <a href="/register">会員登録</a>
         </div>
+        デマス
+    </div>
+    <div class="header-buttons">
+        <button class="login-btn" onclick="openLoginModal()">ログイン</button>
+        <a href="/register" class="signup-btn">会員登録</a>
+    </div>
+</header>
+
+<!-- Main Container -->
+<div class="main-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="nearby-section">
+            <h2 class="nearby-title">近くのトイレ</h2>
+            <p class="nearby-subtitle">現在地から近い順に表示</p>
+        </div>
+
+        <!-- Toilet List -->
+        <div class="toilet-list">
+            <!-- Toilet Item 1 -->
+            <div class="toilet-item">
+                <div class="toilet-header">
+                    <h3 class="toilet-name">江南駅公衆トイレ</h3>
+                    <span class="toilet-distance">0.3km</span>
+                </div>
+                <p class="toilet-address">ソウル特別市江南区永東大路396</p>
+                <div class="toilet-info">
+                    <span class="rating">⭐ 4.5 <span class="review-count">(128)</span></span>
+                    <span class="hours">🕐 24時間</span>
+                </div>
+                <div class="toilet-tags">
+                    <span class="tag">#24時間</span>
+                    <span class="tag">#車椅子対応</span>
+                    <span class="tag">#非常ベル</span>
+                </div>
+                <a href="#" class="details-link" onclick="event.preventDefault(); openLoginModal();">
+                    🔒 詳細情報を見るにはログインが必要です →
+                </a>
+            </div>
+
+            <!-- Toilet Item 2 -->
+            <div class="toilet-item">
+                <div class="toilet-header">
+                    <h3 class="toilet-name">汝矣島漢江公園トイレ</h3>
+                    <span class="toilet-distance">0.6km</span>
+                </div>
+                <p class="toilet-address">ソウル特別市永登浦区汝矣島路330</p>
+                <div class="toilet-info">
+                    <span class="rating">⭐ 4.2 <span class="review-count">(95)</span></span>
+                    <span class="hours">🕐 24時間</span>
+                </div>
+                <div class="toilet-tags">
+                    <span class="tag">#24時間</span>
+                    <span class="tag">#車椅子対応</span>
+                    <span class="tag">#清潔</span>
+                </div>
+                <a href="#" class="details-link" onclick="event.preventDefault(); openLoginModal();">
+                    🔒 詳細情報を見るにはログインが必要です →
+                </a>
+            </div>
+
+            <!-- Toilet Item 3 -->
+            <div class="toilet-item">
+                <div class="toilet-header">
+                    <h3 class="toilet-name">弘大入口駅公衆トイレ</h3>
+                    <span class="toilet-distance">1.2km</span>
+                </div>
+                <p class="toilet-address">ソウル特別市麻浦区臥牛山路160</p>
+                <div class="toilet-info">
+                    <span class="rating">⭐ 3.8 <span class="review-count">(67)</span></span>
+                </div>
+                <div class="toilet-tags">
+                    <span class="tag">#車椅子対応</span>
+                    <span class="tag">#おむつ交換台</span>
+                </div>
+                <a href="#" class="details-link" onclick="event.preventDefault(); openLoginModal();">
+                    🔒 詳細情報を見るにはログインが必要です →
+                </a>
+            </div>
+
+            <!-- Toilet Item 4 -->
+            <div class="toilet-item">
+                <div class="toilet-header">
+                    <h3 class="toilet-name">鷺福岳前公衆トイレ</h3>
+                    <span class="toilet-distance">1.5km</span>
+                </div>
+                <p class="toilet-address">ソウル特別市瑞草区社稜路161</p>
+                <div class="toilet-info">
+                    <span class="rating">⭐ 4 <span class="review-count">(112)</span></span>
+                    <span class="hours">🕐 24時間</span>
+                </div>
+                <div class="toilet-tags">
+                    <span class="tag">#24時間</span>
+                    <span class="tag">#清潔</span>
+                    <span class="tag">#非常ベル</span>
+                </div>
+                <a href="#" class="details-link" onclick="event.preventDefault(); openLoginModal();">
+                    🔒 詳細情報を見るにはログインが必要です →
+                </a>
+            </div>
+
+            <!-- Toilet Item 5 -->
+            <div class="toilet-item">
+                <div class="toilet-header">
+                    <h3 class="toilet-name">明洞観光案内所トイレ</h3>
+                    <span class="toilet-distance">2.1km</span>
+                </div>
+                <p class="toilet-address">ソウル特別市中区明洞キル27</p>
+                <div class="toilet-info">
+                    <span class="rating">⭐ 4.7 <span class="review-count">(203)</span></span>
+                </div>
+                <div class="toilet-tags">
+                    <span class="tag">#清潔</span>
+                    <span class="tag">#車椅子対応</span>
+                    <span class="tag">#非常ベル</span>
+                </div>
+                <a href="#" class="details-link" onclick="event.preventDefault(); openLoginModal();">
+                    🔒 詳細情報を見るにはログインが必要です →
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map Area -->
+    <main class="map-area">
+        <!-- Map Placeholder -->
+        <div class="map-placeholder">
+            <div class="map-overlay">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <p>地図エリア</p>
+            </div>
+        </div>
+
+        <!-- Search Container (Floating on Map) -->
+        <div class="search-container">
+            <div class="search-box">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" placeholder="地域や建物名で検索">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active">すべて</button>
+                <button class="filter-btn">清潔</button>
+                <button class="filter-btn">おむつ交換台</button>
+                <button class="filter-btn">24時間</button>
+                <button class="filter-btn">車椅子対応</button>
+                <button class="filter-btn">非常ベル</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="footer-logo">
+                <div class="footer-logo-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <h3>デマス</h3>
+            </div>
+            <p class="footer-description">日本全国のトイレ情報を共有するコミュニティプラットフォーム。清潔で安心して使えるトイレを見つけましょう。</p>
+            <div class="social-icons">
+                <div class="social-icon twitter">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </div>
+                <div class="social-icon facebook">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </div>
+                <div class="social-icon instagram">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </div>
+                <div class="social-icon line">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <h4>サービス</h4>
+            <ul>
+                <li><a href="#">トイレを探す</a></li>
+                <li><a href="#">トイレを追加</a></li>
+                <li><a href="#">最近のトイレ</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>サポート</h4>
+            <ul>
+                <li><a href="#">お問い合わせ</a></li>
+                <li><a href="#">利用規約</a></li>
+                <li><a href="#">プライバシーポリシー</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 デマス. All rights reserved.
+    </div>
+</footer>
+
+<!-- Login Modal -->
+<div id="loginModal" class="login-modal-overlay" style="display: none;">
+    <div class="login-modal-content">
+        <button class="close-btn" onclick="closeLoginModal()">×</button>
+
+        <div class="modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+        </div>
+
+        <h1 class="modal-title">ログイン</h1>
+        <p class="modal-subtitle">アカウントにログインしてください</p>
+
+        <form class="login-form">
+            <div class="form-group">
+                <label>メールアドレス</label>
+                <input type="email" name="email" placeholder="demasu@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>パスワード</label>
+                <input type="password" name="password" placeholder="········">
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember">
+                    <span>ログイン状態を保持</span>
+                </label>
+                <a href="#" class="forgot-link">パスワードを忘れた</a>
+            </div>
+
+            <button type="submit" class="login-btn-submit">ログイン</button>
+
+            <div class="divider">
+                <span>または</span>
+            </div>
+
+            <button type="button" class="google-btn">
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.17.282-1.709V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.335z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                </svg>
+                Googleでログイン
+            </button>
+
+            <p class="signup-link">
+                アカウントをお持ちでないですか？ <a href="/register">会員登録</a>
+            </p>
+        </form>
     </div>
 </div>
 
-<!-- 토스트 -->
-<div class="toast-notification" id="registerToast" th:if="${registerSuccess}">
-    <i class="fas fa-check-circle"></i>
-    <span>会員登録が完了しました！ログインしてください。</span>
-</div>
-<div class="toast-notification" id="logoutToast" th:if="${logoutSuccess}">
-    <i class="fas fa-check-circle"></i>
-    <span>ログアウトしました。</span>
-</div>
+<script>
+    function openLoginModal() {
+        document.getElementById('loginModal').style.display = 'flex';
+    }
 
-<script th:src="@{/js/app.js}"></script>
-<script th:if="${loginError}">
-    document.addEventListener('DOMContentLoaded', () => openLoginModal());
-</script>
-<script th:if="${registerSuccess}">
-    document.addEventListener('DOMContentLoaded', () => {
-        openLoginModal();
-        setTimeout(() => {
-            document.getElementById('registerToast')?.classList.add('show');
-            setTimeout(() => document.getElementById('registerToast')?.classList.remove('show'), 3000);
-        }, 300);
+    function closeLoginModal() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+
+    // 모달 배경 클릭시 닫기
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeLoginModal();
+        }
     });
 </script>
-
 </body>
 </html>

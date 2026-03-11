@@ -1,273 +1,168 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会員登録 - トイレマップ</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" th:href="@{/css/register.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>会員登録 - デマス</title>
+    <link rel="stylesheet" href="/css/register.css">
 </head>
-<body class="register-body">
-
-<div class="register-container">
-
-    <!-- 왼쪽: 비주얼 영역 -->
-    <div class="register-visual">
-        <div class="visual-content">
-            <i class="fas fa-restroom visual-icon"></i>
-            <h1>トイレマップ</h1>
-            <p>韓国旅行をもっと快適に。<br>近くのトイレをすぐ見つけよう。</p>
-        </div>
-        <div class="visual-decoration">
-            <div class="circle circle-1"></div>
-            <div class="circle circle-2"></div>
-            <div class="circle circle-3"></div>
-        </div>
+<body>
+<!-- Header -->
+<header class="header">
+    <div class="logo" onclick="location.href='/'" style="cursor: pointer;">
+        <div class="logo-icon">D</div>
+        デマス
     </div>
+    <div class="header-buttons">
+        <a href="/login" class="login-btn">ログイン</a>
+        <a href="/register" class="signup-btn">会員登録</a>
+    </div>
+</header>
 
-    <!-- 오른쪽: 폼 영역 -->
-    <div class="register-form-area">
-        <div class="form-header">
-            <a href="/" class="back-link">
-                <i class="fas fa-arrow-left"></i> 戻る
-            </a>
-            <h2>会員登録</h2>
-            <p>アカウントを作成して、すべての機能をご利用ください。</p>
+<!-- Main Content -->
+<main class="main-content">
+    <div class="signup-card">
+        <div class="card-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
         </div>
+        <h1 class="card-title">会員登録</h1>
+        <p class="card-subtitle">アカウントを作成して、サービスを始めましょう</p>
 
-        <!-- 에러 메시지 -->
-        <div class="error-message" th:if="${error}" style="display:flex;">
-            <i class="fas fa-exclamation-circle"></i>
-            <span th:text="${error}"></span>
-        </div>
-
-        <form th:action="@{/register}" method="post" class="register-form" id="registerForm">
-
-            <!-- ID -->
-            <div class="form-group">
-                <label>ユーザーID <span class="required">*</span></label>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" name="username" th:value="${user?.username}"
-                           placeholder="英数字で入力" required minlength="4" maxlength="50"
-                           id="usernameInput">
-                </div>
-                <span class="field-message" id="usernameMsg"></span>
-            </div>
-
-            <!-- パスワード -->
-            <div class="form-group">
-                <label>パスワード <span class="required">*</span></label>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="password" placeholder="8文字以上"
-                           required minlength="8" id="passwordInput">
-                    <button type="button" class="toggle-pw" onclick="togglePassword('passwordInput', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- パスワード確認 -->
-            <div class="form-group">
-                <label>パスワード確認 <span class="required">*</span></label>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="passwordConfirm" placeholder="パスワードを再入力"
-                           required id="passwordConfirmInput">
-                </div>
-                <span class="field-message" id="passwordMsg"></span>
-            </div>
-
-            <!-- ニックネーム -->
-            <div class="form-group">
-                <label>ニックネーム <span class="required">*</span></label>
-                <div class="input-group">
-                    <i class="fas fa-smile"></i>
-                    <input type="text" name="nickname" th:value="${user?.nickname}"
-                           placeholder="ニックネームを入力" required maxlength="50"
-                           id="nicknameInput">
-                </div>
-                <span class="field-message" id="nicknameMsg"></span>
-            </div>
-
-            <!-- メールアドレス -->
-            <div class="form-group">
-                <label>メールアドレス <span class="required">*</span></label>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" name="email" th:value="${user?.email}"
-                           placeholder="example@email.com" required
-                           id="emailInput">
-                </div>
-                <span class="field-message" id="emailMsg"></span>
-            </div>
-
-            <!-- 電話番号 -->
-            <div class="form-group">
-                <label>電話番号</label>
-                <div class="input-group">
-                    <i class="fas fa-phone"></i>
-                    <input type="tel" name="phone" th:value="${user?.phone}"
-                           placeholder="080-1234-5678">
-                </div>
-            </div>
-
-            <!-- 性別 + 生年月日 (横並び) -->
+        <form>
             <div class="form-row">
                 <div class="form-group">
-                    <label>性別</label>
-                    <div class="input-group">
-                        <i class="fas fa-venus-mars"></i>
-                        <select name="gender">
-                            <option value="">選択</option>
-                            <option value="MALE" th:selected="${user?.gender == 'MALE'}">男性</option>
-                            <option value="FEMALE" th:selected="${user?.gender == 'FEMALE'}">女性</option>
-                            <option value="OTHER" th:selected="${user?.gender == 'OTHER'}">その他</option>
-                        </select>
-                    </div>
+                    <label>ユーザーID <span class="required">*</span></label>
+                    <input type="text" placeholder="ユーザーIDを入力">
+                    <div class="hint-text">重複確認</div>
                 </div>
                 <div class="form-group">
-                    <label>生年月日</label>
-                    <div class="input-group">
-                        <i class="fas fa-calendar"></i>
-                        <input type="date" name="birthdate" th:value="${user?.birthdate}">
-                    </div>
+                    <label>ニックネーム <span class="required">*</span></label>
+                    <input type="text" placeholder="ニックネームを入力">
+                    <div class="hint-text">重複確認</div>
                 </div>
             </div>
 
-            <!-- LINE チャットボット同意 -->
-            <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="lineAgreed" value="1">
-                    <span class="checkmark"></span>
-                    <span>LINEチャットボットの通知を受け取る</span>
-                </label>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>パスワード <span class="required">*</span></label>
+                    <input type="password" placeholder="8文字以上">
+                </div>
+                <div class="form-group">
+                    <label>パスワード確認 <span class="required">*</span></label>
+                    <input type="password" placeholder="パスワードを再入力">
+                </div>
             </div>
 
-            <!-- 회원가입 버튼 -->
-            <button type="submit" class="btn-submit btn-register" id="submitBtn">
-                <i class="fas fa-user-plus"></i> 会員登録
+            <div class="form-group">
+                <label>メールアドレス <span class="required">*</span></label>
+                <input type="email" placeholder="example@email.com">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>電話番号</label>
+                    <input type="tel" placeholder="080-1234-5678">
+                </div>
+                <div class="form-group">
+                    <label>性別</label>
+                    <select>
+                        <option>選択してください</option>
+                        <option>男性</option>
+                        <option>女性</option>
+                        <option>その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>生年月日</label>
+                <input type="date" placeholder="-/-/-">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="agree">
+                <label for="agree">LINE通知デチャットボットの利用に同意します</label>
+            </div>
+
+            <button type="submit" class="submit-btn">会員登録</button>
+
+            <div class="divider">または</div>
+
+            <button type="button" class="google-btn">
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.17.282-1.709V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.335z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                </svg>
+                Googleで登録
             </button>
 
-            <!-- 로그인 링크 -->
-            <div class="login-redirect">
-                <span>すでにアカウントをお持ちですか？</span>
-                <a href="/">ログイン</a>
+            <div class="login-link">
+                すでにアカウントをお持ちの方はこちら <a href="/login">ログイン</a>
             </div>
-
         </form>
     </div>
+</main>
 
-</div>
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="footer-logo-icon">D</div>
+            <div class="footer-brand-text">
+                <h3>デマス</h3>
+                <p>韓国全国のトイレ情報を共有するコミュニティプラットフォーム、清潔で安心して使えるトイレを見つけましょう！</p>
+                <div class="social-icons">
+                    <div class="social-icon twitter">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </div>
+                    <div class="social-icon facebook">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </div>
+                    <div class="social-icon instagram">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </div>
+                    <div class="social-icon line">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<script>
-// 비밀번호 보기/숨기기 토글
-function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const icon = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-}
+        <div class="footer-section">
+            <h4>サービス</h4>
+            <ul>
+                <li><a href="#">トイレを探す</a></li>
+                <li><a href="#">トイレを追加</a></li>
+                <li><a href="#">最近のトイレ</a></li>
+            </ul>
+        </div>
 
-// 비밀번호 일치 확인 (실시간)
-document.getElementById('passwordConfirmInput').addEventListener('input', function() {
-    const pw = document.getElementById('passwordInput').value;
-    const msg = document.getElementById('passwordMsg');
-    if (this.value && this.value !== pw) {
-        msg.textContent = 'パスワードが一致しません。';
-        msg.className = 'field-message error';
-    } else if (this.value && this.value === pw) {
-        msg.textContent = 'パスワードが一致します。';
-        msg.className = 'field-message success';
-    } else {
-        msg.textContent = '';
-    }
-});
+        <div class="footer-section">
+            <h4>サポート</h4>
+            <ul>
+                <li><a href="#">お問い合わせ</a></li>
+                <li><a href="#">利用規約</a></li>
+                <li><a href="#">プライバシーポリシー</a></li>
+            </ul>
+        </div>
+    </div>
 
-// username 중복 체크 (실시간)
-let usernameTimeout;
-document.getElementById('usernameInput').addEventListener('input', function() {
-    clearTimeout(usernameTimeout);
-    const msg = document.getElementById('usernameMsg');
-    const value = this.value.trim();
-
-    if (value.length < 4) {
-        msg.textContent = '4文字以上で入力してください。';
-        msg.className = 'field-message error';
-        return;
-    }
-
-    usernameTimeout = setTimeout(() => {
-        fetch(`/api/check-username?username=${encodeURIComponent(value)}`)
-            .then(res => res.json())
-            .then(response => {
-                if (response.success && response.data) {
-                    msg.textContent = '使用可能なIDです。';
-                    msg.className = 'field-message success';
-                } else {
-                    msg.textContent = 'すでに使用されているIDです。';
-                    msg.className = 'field-message error';
-                }
-            });
-    }, 500);
-});
-
-// 닉네임 중복 체크 (실시간)
-let nicknameTimeout;
-document.getElementById('nicknameInput').addEventListener('input', function() {
-    clearTimeout(nicknameTimeout);
-    const msg = document.getElementById('nicknameMsg');
-    const value = this.value.trim();
-
-    if (!value) { msg.textContent = ''; return; }
-
-    nicknameTimeout = setTimeout(() => {
-        fetch(`/api/check-nickname?nickname=${encodeURIComponent(value)}`)
-            .then(res => res.json())
-            .then(response => {
-                if (response.success && response.data) {
-                    msg.textContent = '使用可能なニックネームです。';
-                    msg.className = 'field-message success';
-                } else {
-                    msg.textContent = 'すでに使用されているニックネームです。';
-                    msg.className = 'field-message error';
-                }
-            });
-    }, 500);
-});
-
-// 이메일 중복 체크 (실시간)
-let emailTimeout;
-document.getElementById('emailInput').addEventListener('input', function() {
-    clearTimeout(emailTimeout);
-    const msg = document.getElementById('emailMsg');
-    const value = this.value.trim();
-
-    if (!value || !value.includes('@')) { msg.textContent = ''; return; }
-
-    emailTimeout = setTimeout(() => {
-        fetch(`/api/check-email?email=${encodeURIComponent(value)}`)
-            .then(res => res.json())
-            .then(response => {
-                if (response.success && response.data) {
-                    msg.textContent = '使用可能なメールアドレスです。';
-                    msg.className = 'field-message success';
-                } else {
-                    msg.textContent = 'すでに使用されているメールアドレスです。';
-                    msg.className = 'field-message error';
-                }
-            });
-    }, 500);
-});
-</script>
-
+    <div class="footer-bottom">
+        © 2026デマス. All rights reserved.
+    </div>
+</footer>
 </body>
 </html>
