@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レビューを書く - トイレマップ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/review-write.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="review-container">
+
+    <!-- ── 왼쪽: 비주얼 영역 ── -->
+    <div class="review-visual">
+        <div class="visual-content">
+            <i class="fas fa-star visual-icon"></i>
+            <h1>レビューを書く</h1>
+            <p>あなたの体験を共有して<br>みんなの旅をサポートしよう。</p>
+
+            <!-- 화장실 정보 카드 -->
+            <div class="toilet-info-card" th:if="${toilet}">
+                <div class="label">レビュー対象</div>
+                <div class="toilet-name" th:text="${toilet.name}">トイレ名</div>
+                <div class="toilet-addr" th:text="${toilet.address}">住所</div>
+            </div>
+
+            <!-- 더미 데이터 -->
+            <div class="toilet-info-card" th:unless="${toilet}">
+                <div class="label">レビュー対象</div>
+                <div class="toilet-name">スターバックス 江南駅店</div>
+                <div class="toilet-addr">ソウル特別市 江南区 江南大路 390</div>
+            </div>
+
+        </div>
+        <div class="visual-decoration">
+            <div class="circle circle-1"></div>
+            <div class="circle circle-2"></div>
+            <div class="circle circle-3"></div>
+        </div>
+    </div>
+
+    <!-- ── 오른쪽: 폼 영역 ── -->
+    <div class="review-form-area">
+        <div class="form-header">
+            <a th:href="@{/toilet/{id}(id=${toiletId})}" href="#" class="back-link">
+                <i class="fas fa-arrow-left"></i> 戻る
+            </a>
+            <h2>レビューを書く</h2>
+            <p>トイレの清潔さや使いやすさについて教えてください。</p>
+        </div>
+
+        <!-- 에러 메시지 -->
+        <div class="error-message" th:if="${error}" style="display:flex;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/review/api/write}" method="post"
+              enctype="multipart/form-data" id="reviewForm">
+
+            <!-- 숨김: toiletId / userId -->
+            <input type="hidden" name="toiletId" th:value="${toiletId}">
+            <input type="hidden" name="userId"   th:value="${userId}">
+
+            <!-- ① 清潔度スコア (별점) -->
+            <div class="score-section">
+                <label>清潔度スコア <span class="required">*</span></label>
+                <div class="star-group" id="starGroup">
+                    <span class="star" data-val="1">★</span>
+                    <span class="star" data-val="2">★</span>
+                    <span class="star" data-val="3">★</span>
+                    <span class="star" data-val="4">★</span>
+                    <span class="star" data-val="5">★</span>
+                    <span class="score-label" id="scoreLabel">未選択</span>
+                </div>
+                <input type="hidden" name="cleanScore" id="cleanScore" required>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- ② 一言タグ -->
+            <div class="form-group">
+                <label>ひとことタグ <span style="color:var(--gray-400);font-weight:400;">(複数選択可)</span></label>
+                <div class="tag-group" id="tagGroup">
+                    <button type="button" class="tag-btn" data-tag="清潔"><i class="fas fa-soap"></i>清潔</button>
+                    <button type="button" class="tag-btn" data-tag="広い"><i class="fas fa-expand-arrows-alt"></i>広い</button>
+                    <button type="button" class="tag-btn" data-tag="匂いあり"><i class="fas fa-wind"></i>匂いあり</button>
+                    <button type="button" class="tag-btn" data-tag="紙あり"><i class="fas fa-toilet-paper"></i>紙あり</button>
+                    <button type="button" class="tag-btn" data-tag="混雑"><i class="fas fa-people-arrows"></i>混雑</button>
+                    <button type="button" class="tag-btn" data-tag="バリアフリー"><i class="fas fa-wheelchair"></i>バリアフリー</button>
+                    <button type="button" class="tag-btn" data-tag="洗面台あり"><i class="fas fa-sink"></i>洗面台あり</button>
+                    <button type="button" class="tag-btn" data-tag="ウォシュレット"><i class="fas fa-tint"></i>ウォシュレット</button>
+                </div>
+                <input type="hidden" name="tags" id="tagsInput">
+            </div>
+
+            <!-- ③ レビュー本文 -->
+            <div class="form-group">
+                <label>レビュー内容 <span class="required">*</span></label>
+                <div class="input-group textarea-group">
+                    <i class="fas fa-pen-to-square"></i>
+                    <textarea name="content" id="contentInput"
+                              placeholder="清潔さ、使いやすさ、混雑具合など、気づいたことを書いてください。"
+                              required maxlength="500"></textarea>
+                </div>
+                <div class="char-count"><span id="charCount">0</span> / 500</div>
+            </div>
+
+            <!-- ④ 画像アップロード -->
+            <div class="image-upload-section">
+                <label>写真を追加 <span style="color:var(--gray-400);font-weight:400;">(最大5枚)</span></label>
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" name="files" id="fileInput" accept="image/*" multiple>
+                    <div class="drop-zone-icon"><i class="fas fa-image"></i></div>
+                    <p><span class="highlight">クリックして選択</span>、またはここにドラッグ＆ドロップ</p>
+                    <p class="file-limit">PNG, JPG, WEBP ／ 1ファイル最大5MB ／ 最大5枚</p>
+
+                    <p class="upload-notice">
+                        <i class="fas fa-circle-info"></i>
+                        場所と関係のない内容や、他人の顔が写った写真の投稿はお控えください。
+                    </p>
+                </div>
+                <div class="preview-grid" id="previewGrid"></div>
+                <div class="preview-count" id="previewCount"></div>
+            </div>
+
+            <!-- ⑤ 送信ボタン -->
+            <p class="review-notice">
+                <i class="fas fa-triangle-exclamation"></i>
+                不適切なレビューは削除される場合があります。
+            </p>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> レビューを投稿する
+            </button>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+    /* ─── 1. 별점 ─── */
+    const stars      = document.querySelectorAll('.star');
+    const scoreInput = document.getElementById('cleanScore');
+    const scoreLabel = document.getElementById('scoreLabel');
+    const scoreText  = ['', '最悪', '悪い', '普通', '良い', '最高！'];
+
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.val);
+            scoreInput.value = val;
+            scoreLabel.textContent = scoreText[val];
+            stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= val));
+        });
+        star.addEventListener('mouseenter', () => {
+            const val = parseInt(star.dataset.val);
+            stars.forEach(s => { s.style.color = parseInt(s.dataset.val) <= val ? '#f59e0b' : ''; });
+        });
+    });
+    document.getElementById('starGroup').addEventListener('mouseleave', () => {
+        const selected = parseInt(scoreInput.value) || 0;
+        stars.forEach(s => { s.style.color = parseInt(s.dataset.val) <= selected ? '#f59e0b' : ''; });
+    });
+
+    /* ─── 2. 태그 ─── */
+    const tagsInput    = document.getElementById('tagsInput');
+    let   selectedTags = [];
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            btn.classList.toggle('selected');
+            selectedTags = btn.classList.contains('selected')
+                ? [...selectedTags, tag]
+                : selectedTags.filter(t => t !== tag);
+            tagsInput.value = selectedTags.join(',');
+        });
+    });
+
+    /* ─── 3. 글자수 카운터 ─── */
+    document.getElementById('contentInput').addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    /* ─── 4. 이미지 업로드 & 미리보기 ─── */
+    const fileInput    = document.getElementById('fileInput');
+    const dropZone     = document.getElementById('dropZone');
+    const previewGrid  = document.getElementById('previewGrid');
+    const previewCount = document.getElementById('previewCount');
+    const MAX_FILES    = 5;
+    let   dataTransfer = new DataTransfer();
+
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        addFiles([...e.dataTransfer.files]);
+    });
+    fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+
+    function addFiles(newFiles) {
+        for (const file of newFiles) {
+            if (dataTransfer.files.length >= MAX_FILES) break;
+            if (!file.type.startsWith('image/')) continue;
+            if (file.size > 5 * 1024 * 1024) { alert(`${file.name} は5MBを超えています。`); continue; }
+            dataTransfer.items.add(file);
+        }
+        fileInput.files = dataTransfer.files;
+        renderPreviews();
+    }
+
+    function removeFile(index) {
+        const newDt = new DataTransfer();
+        [...dataTransfer.files].forEach((f, i) => { if (i !== index) newDt.items.add(f); });
+        dataTransfer = newDt;
+        fileInput.files = dataTransfer.files;
+        renderPreviews();
+    }
+
+    function renderPreviews() {
+        previewGrid.innerHTML = '';
+        [...dataTransfer.files].forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.innerHTML = `
+                    <img src="${e.target.result}" alt="preview">
+                    <button type="button" class="remove-btn" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>`;
+                previewGrid.appendChild(item);
+            };
+            reader.readAsDataURL(file);
+        });
+        const cnt = dataTransfer.files.length;
+        previewCount.textContent = cnt > 0 ? `${cnt} / ${MAX_FILES} 枚選択中` : '';
+    }
+
+    /* ─── 5. 폼 제출 유효성 검사 ─── */
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        if (!scoreInput.value) {
+            e.preventDefault();
+            alert('清潔度スコアを選択してください。');
+            return;
+        }
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 投稿中...';
+    });
+</script>
+
+</body>
+</html>
