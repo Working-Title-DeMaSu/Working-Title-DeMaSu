@@ -32,7 +32,7 @@ public class ToiletService {
 
     //필터 검색 (24시간, 장애인, 기저귀, 비상벨 등)
     public List<Toilet> findByFilter(double lat, double lng, int radius,
-                                     Integer is24hours, Integer isWeelchair,
+                                     Integer is24hours, Integer isWheelchair,
                                      Integer hasDiaper, Integer hasEmergency,
                                      Integer hasPaper, Integer hasSanitary) {
 
@@ -41,7 +41,7 @@ public class ToiletService {
         params.put("lng", lng);
         params.put("radius", radius);
         params.put("is24hours", is24hours);
-        params.put("isWeelchair", isWeelchair);
+        params.put("isWheelchair", isWheelchair);
         params.put("hasDiaper", hasDiaper);
         params.put("hasEmergency", hasEmergency);
         params.put("hasPaper", hasPaper);

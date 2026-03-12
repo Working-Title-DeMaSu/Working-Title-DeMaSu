@@ -1,4 +1,4 @@
-48package com.jsl26tp.jsl26tp.review.mapper;
+package com.jsl26tp.jsl26tp.review.mapper;
 
 import com.jsl26tp.jsl26tp.review.domain.ReviewImage;
 import org.apache.ibatis.annotations.Mapper;

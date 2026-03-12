@@ -35,14 +35,14 @@ public class ToiletController {
             @RequestParam double lat, @RequestParam double lng,
             @RequestParam(defaultValue = "500") int radius,
             @RequestParam(required = false) Integer is24hours,
-            @RequestParam(required = false) Integer isWeelchair,
+            @RequestParam(required = false) Integer isWheelchair,
             @RequestParam(required = false) Integer hasDiaper,
             @RequestParam(required = false) Integer hasEmergency,
             @RequestParam(required = false) Integer hasPaper,
             @RequestParam(required = false) Integer hasSanitary) {
 
         List<Toilet> toilets = toiletService.findByFilter(lat, lng, radius,
-                                                    is24hours, isWeelchair, hasDiaper,
+                                                    is24hours, isWheelchair, hasDiaper,
                                                     hasEmergency, hasPaper, hasSanitary);
         return ApiResponse.ok(toilets);
 
