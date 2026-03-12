@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新しいトイレを追加 - トイレマップ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/toilet-register.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="register-page">
+
+    <!-- 상단 네비 -->
+    <div class="register-nav">
+        <a th:href="@{/}" class="back-link">
+            <i class="fas fa-arrow-left"></i> マップに戻る
+        </a>
+    </div>
+
+    <h1 class="page-title">新しいトイレを追加</h1>
+    <p class="page-subtitle">トイレ情報を提出してください。管理者の確認後に公開されます。</p>
+
+    <form id="toiletForm">
+
+        <!-- ① 基本情報 -->
+        <div class="form-card">
+            <h3 class="card-title"><i class="fas fa-circle-info"></i> 基本情報</h3>
+
+            <div class="form-group">
+                <label>トイレ名 <span class="required">*</span></label>
+                <input type="text" name="name" id="toiletName" placeholder="例: ソウル特別市庁" required>
+            </div>
+
+            <div class="form-group">
+                <label>住所 <span class="required">*</span></label>
+                <input type="text" name="address" id="toiletAddress" placeholder="例: 大韓民国 ソウル特別市 中区 世宗大路110" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>緯度</label>
+                    <input type="number" name="latitude" id="toiletLat" step="any" placeholder="37.5662952" readonly>
+                </div>
+                <div class="form-group">
+                    <label>経度</label>
+                    <input type="number" name="longitude" id="toiletLng" step="any" placeholder="126.9779451" readonly>
+                </div>
+            </div>
+            <button type="button" class="btn-location" onclick="getCurrentLocation()">
+                <i class="fas fa-crosshairs"></i> 現在地を取得
+            </button>
+
+            <div class="form-group" style="margin-top:16px;">
+                <label>説明・備考</label>
+                <textarea name="description" id="toiletDesc" placeholder="トイレに関する追加情報があれば入力してください..." maxlength="500"></textarea>
+                <div class="char-count"><span id="descCharCount">0</span>/500</div>
+            </div>
+        </div>
+
+        <!-- ② 営業時間 -->
+        <div class="form-card">
+            <h3 class="card-title"><i class="fas fa-clock"></i> 営業時間</h3>
+
+            <div class="toggle-row">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="is24hours" name="is24hours" onchange="toggle24h()">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">24時間営業</span>
+            </div>
+
+            <div class="form-row" id="hoursRow">
+                <div class="form-group">
+                    <label>開店時間</label>
+                    <input type="time" name="openTime" id="openTime">
+                </div>
+                <div class="form-group">
+                    <label>閉店時間</label>
+                    <input type="time" name="closeTime" id="closeTime">
+                </div>
+            </div>
+        </div>
+
+        <!-- ③ 設備情報 -->
+        <div class="form-card">
+            <h3 class="card-title"><i class="fas fa-gear"></i> 設備情報</h3>
+
+            <div class="facility-grid">
+                <label class="facility-item">
+                    <input type="checkbox" name="isWheelchair" value="1">
+                    <span class="facility-box"><i class="fas fa-wheelchair"></i> 車椅子対応</span>
+                </label>
+                <label class="facility-item">
+                    <input type="checkbox" name="hasPaper" value="1">
+                    <span class="facility-box"><i class="fas fa-toilet-paper"></i> トイレットペーパー</span>
+                </label>
+                <label class="facility-item">
+                    <input type="checkbox" name="hasSoap" value="1">
+                    <span class="facility-box"><i class="fas fa-soap"></i> 石鹸</span>
+                </label>
+                <label class="facility-item">
+                    <input type="checkbox" name="hasSanitary" value="1">
+                    <span class="facility-box"><i class="fas fa-box"></i> 生理用品自販機</span>
+                </label>
+                <label class="facility-item">
+                    <input type="checkbox" name="hasEmergency" value="1">
+                    <span class="facility-box"><i class="fas fa-bell"></i> 非常ベル</span>
+                </label>
+            </div>
+
+            <div class="toilet-type-section">
+                <label class="section-label">便器の種類</label>
+                <div class="type-group">
+                    <button type="button" class="type-btn selected" data-type="western" onclick="selectType(this)">洋式</button>
+                    <button type="button" class="type-btn" data-type="japanese" onclick="selectType(this)">和式</button>
+                    <button type="button" class="type-btn" data-type="both" onclick="selectType(this)">両方</button>
+                </div>
+                <input type="hidden" name="toiletType" id="toiletType" value="western">
+            </div>
+        </div>
+
+        <!-- ④ タグ -->
+        <div class="form-card">
+            <h3 class="card-title"><i class="fas fa-tags"></i> タグ</h3>
+            <div class="tag-group">
+                <button type="button" class="tag-btn" data-tag="24時間">#24時間</button>
+                <button type="button" class="tag-btn" data-tag="車椅子対応">#車椅子対応</button>
+                <button type="button" class="tag-btn" data-tag="非常ベル">#非常ベル</button>
+                <button type="button" class="tag-btn" data-tag="おむつ交換台">#おむつ交換台</button>
+                <button type="button" class="tag-btn" data-tag="清潔">#清潔</button>
+                <button type="button" class="tag-btn" data-tag="多目的トイレ">#多目的トイレ</button>
+                <button type="button" class="tag-btn" data-tag="授乳室">#授乳室</button>
+            </div>
+            <input type="hidden" name="tags" id="tagsInput">
+        </div>
+
+        <!-- 제출 버튼 -->
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fas fa-paper-plane"></i> 提出する
+        </button>
+    </form>
+</div>
+
+<!-- Footer -->
+<footer class="register-footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="footer-logo">
+                <i class="fas fa-location-dot"></i>
+                <h3>トイレマップ</h3>
+            </div>
+            <p>日本全国のトイレ情報を共有するコミュニティプラットフォーム。清潔で安心して使えるトイレを見つけましょう。</p>
+        </div>
+        <div class="footer-links">
+            <div class="footer-section">
+                <h4>サービス</h4>
+                <a href="#">トイレを探す</a>
+                <a href="#">トイレを追加</a>
+                <a href="#">最近のトイレ</a>
+            </div>
+            <div class="footer-section">
+                <h4>サポート</h4>
+                <a href="#">お問い合わせ</a>
+                <a href="#">利用規約</a>
+                <a href="#">プライバシーポリシー</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; 2026 トイレマップ. All rights reserved.
+    </div>
+</footer>
+
+<script>
+    /* ─── 현재 위치 가져오기 ─── */
+    function getCurrentLocation() {
+        if (!navigator.geolocation) {
+            alert('お使いのブラウザでは位置情報を取得できません。');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                document.getElementById('toiletLat').value = pos.coords.latitude.toFixed(7);
+                document.getElementById('toiletLng').value = pos.coords.longitude.toFixed(7);
+            },
+            () => alert('位置情報の取得に失敗しました。')
+        );
+    }
+
+    /* ─── 24시간 토글 ─── */
+    function toggle24h() {
+        const checked = document.getElementById('is24hours').checked;
+        const row = document.getElementById('hoursRow');
+        row.style.opacity = checked ? '0.4' : '1';
+        row.style.pointerEvents = checked ? 'none' : 'auto';
+        if (checked) {
+            document.getElementById('openTime').value = '';
+            document.getElementById('closeTime').value = '';
+        }
+    }
+
+    /* ─── 변기 타입 선택 ─── */
+    function selectType(btn) {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('toiletType').value = btn.dataset.type;
+    }
+
+    /* ─── 태그 선택 ─── */
+    let selectedTags = [];
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            btn.classList.toggle('selected');
+            selectedTags = btn.classList.contains('selected')
+                ? [...selectedTags, tag]
+                : selectedTags.filter(t => t !== tag);
+            document.getElementById('tagsInput').value = selectedTags.join(',');
+        });
+    });
+
+    /* ─── 글자수 카운터 ─── */
+    document.getElementById('toiletDesc').addEventListener('input', function () {
+        document.getElementById('descCharCount').textContent = this.value.length;
+    });
+
+    /* ─── 설비 체크박스 ─── */
+    document.querySelectorAll('.facility-item input').forEach(cb => {
+        cb.addEventListener('change', () => {
+            cb.closest('.facility-item').querySelector('.facility-box').classList.toggle('checked', cb.checked);
+        });
+    });
+
+    /* ─── 폼 제출 (API 호출) ─── */
+    document.getElementById('toiletForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById('toiletName').value.trim();
+        const address = document.getElementById('toiletAddress').value.trim();
+
+        if (!name || !address) {
+            alert('トイレ名と住所は必須です。');
+            return;
+        }
+
+        const body = {
+            name: name,
+            address: address,
+            latitude: parseFloat(document.getElementById('toiletLat').value) || null,
+            longitude: parseFloat(document.getElementById('toiletLng').value) || null,
+            description: document.getElementById('toiletDesc').value.trim(),
+            is24hours: document.getElementById('is24hours').checked ? 1 : 0,
+            openTime: document.getElementById('openTime').value || null,
+            closeTime: document.getElementById('closeTime').value || null,
+            isWheelchair: document.querySelector('[name=isWheelchair]').checked ? 1 : 0,
+            hasPaper: document.querySelector('[name=hasPaper]').checked ? 1 : 0,
+            hasEmergency: document.querySelector('[name=hasEmergency]').checked ? 1 : 0,
+            hasSanitary: document.querySelector('[name=hasSanitary]').checked ? 1 : 0,
+            toiletType: document.getElementById('toiletType').value
+        };
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 送信中...';
+
+        fetch('/api/toilets', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('トイレ情報が提出されました！管理者の確認後に公開されます。');
+                location.href = '/';
+            } else {
+                alert(data.message || 'エラーが発生しました。');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提出する';
+            }
+        })
+        .catch(() => {
+            alert('通信エラーが発生しました。');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提出する';
+        });
+    });
+</script>
+
+</body>
+</html>
