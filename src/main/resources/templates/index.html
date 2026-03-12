@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< Updated upstream
 <html lang="ja" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -9,6 +10,15 @@
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+=======
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トイレマップ - デマス</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+>>>>>>> Stashed changes
 </head>
 <body class="mypage">
 
@@ -36,6 +46,23 @@
                 <a th:href="@{/logout}"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</a>
             </div>
         </div>
+<<<<<<< Updated upstream
+=======
+        デマス
+    </div>
+    <div class="header-buttons">
+        <!-- 비로그인 상태 -->
+        <div sec:authorize="!isAuthenticated()">
+            <button class="login-btn" onclick="openLoginModal()">ログイン</button>
+            <a href="/register" class="signup-btn">会員登録</a>
+        </div>
+        <!-- 로그인 상태 -->
+        <div sec:authorize="isAuthenticated()" class="user-info-wrap">
+            <span class="user-nickname" sec:authentication="principal.nickname">User</span>
+            <button class="login-btn" onclick="document.getElementById('logoutForm').submit();">ログアウト</button>
+            <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none;"></form>
+        </div>
+>>>>>>> Stashed changes
     </div>
 </header>
 
@@ -43,6 +70,7 @@
 <main class="mypage-main">
     <div class="mypage-container">
 
+<<<<<<< Updated upstream
         <!-- 프로필 카드 -->
         <section class="profile-card">
             <div class="profile-avatar">
@@ -162,5 +190,120 @@
         }
     });
 </script>
+=======
+        <!-- Search Box in Sidebar -->
+        <div class="sidebar-search">
+            <div class="sidebar-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="地域や建物名で検索">
+            </div>
+            <div class="sidebar-filters">
+                <button class="filter-tag active" data-filter="all">すべて</button>
+                <button class="filter-tag" data-filter="is24hours">24時間</button>
+                <button class="filter-tag" data-filter="isWheelchair">車椅子対応</button>
+                <button class="filter-tag" data-filter="hasDiaper">おむつ交換台</button>
+                <button class="filter-tag" data-filter="hasPaper">清潔</button>
+            </div>
+        </div>
+
+        <!-- Toilet List (Dynamic) -->
+        <div class="toilet-list" id="toiletList">
+            <div class="toilet-list-empty">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>読み込み中...</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map Area -->
+    <main class="map-area">
+        <div id="map" class="map-container"></div>
+
+        <!-- Right controls -->
+        <div class="map-controls-right">
+            <button class="btn-my-location" onclick="moveToMyLocation()" title="現在地に移動">
+                <i class="fas fa-crosshairs"></i>
+            </button>
+        </div>
+
+        <!-- Nearest toilet button -->
+        <div class="nearest-btn-wrap">
+            <button class="btn-nearest" onclick="findNearest()">
+                <i class="fas fa-location-arrow"></i> 最も近いトイレ
+            </button>
+        </div>
+    </main>
+</div>
+
+<!-- Image Lightbox -->
+<div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox()">
+        <i class="fas fa-times"></i>
+    </button>
+    <img class="lightbox-image" id="lightboxImage" src="" alt="Review image">
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="login-modal-overlay" style="display: none;">
+    <div class="login-modal-content">
+        <button class="close-btn" onclick="closeLoginModal()">×</button>
+
+        <div class="modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+        </div>
+
+        <h1 class="modal-title">ログイン</h1>
+        <p class="modal-subtitle">アカウントにログインしてください</p>
+
+        <form class="login-form" th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label>ユーザー名</label>
+                <input type="text" name="username" placeholder="ユーザー名を入力">
+            </div>
+
+            <div class="form-group">
+                <label>パスワード</label>
+                <input type="password" name="password" placeholder="········">
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember-me">
+                    <span>ログイン状態を保持</span>
+                </label>
+                <a href="#" class="forgot-link">パスワードを忘れた</a>
+            </div>
+
+            <button type="submit" class="login-btn-submit">ログイン</button>
+
+            <div class="divider">
+                <span>または</span>
+            </div>
+
+            <button type="button" class="google-btn" onclick="googleLogin()">
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.17.282-1.709V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.335z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                </svg>
+                Googleでログイン
+            </button>
+
+            <p class="signup-link">
+                アカウントをお持ちでないですか？ <a href="/register">会員登録</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<!-- Naver Maps API -->
+<script type="text/javascript" th:src="'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapsClientId}"></script>
+<!-- App JS -->
+<script th:src="@{/js/app.js(v=5)}"></script>
+>>>>>>> Stashed changes
 </body>
 </html>
