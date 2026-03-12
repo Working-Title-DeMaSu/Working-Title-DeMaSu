@@ -79,18 +79,36 @@ public class UserService {
     public User findByUsername(String username) {
         User user = userMapper.findByUsername(username);
         if (user == null) {
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND); // 누나 규칙 준수!
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         return user;
     }
 
     // 회원 정보 수정
     public void updateUser(User user) {
+        // 본인 제외 닉네임 중복 체크
+        User nicknameCheck = userMapper.findByNickname(user.getNickname());
+        if (nicknameCheck != null && !nicknameCheck.getId().equals(user.getId())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        // 본인 제외 이메일 중복 체크
+        User emailCheck = userMapper.findByEmail(user.getEmail());
+        if (emailCheck != null && !emailCheck.getId().equals(user.getId())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
         userMapper.updateUser(user);
     }
 
     // 비밀번호 변경
-    public void updatePassword(Long id, String newPassword) {
+    public void updatePassword(Long id, String currentPassword, String newPassword) {
+        // 현재 비밀번호 검증
+        User user = userMapper.findById(id);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+        }
         if (newPassword.length() < 8) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }

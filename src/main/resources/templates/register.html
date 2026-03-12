@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会員登録 - トイレマップ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="register-body">
+
+<div class="register-container">
+
+    <!-- 왼쪽: 비주얼 영역 -->
+    <div class="register-visual">
+        <div class="visual-content">
+            <i class="fas fa-restroom visual-icon"></i>
+            <h1>トイレマップ</h1>
+            <p>韓国旅行をもっと快適に。<br>近くのトイレをすぐ見つけよう。</p>
+        </div>
+        <div class="visual-decoration">
+            <div class="circle circle-1"></div>
+            <div class="circle circle-2"></div>
+            <div class="circle circle-3"></div>
+        </div>
+    </div>
+
+    <!-- 오른쪽: 폼 영역 -->
+    <div class="register-form-area">
+        <div class="form-header">
+            <a href="/" class="back-link">
+                <i class="fas fa-arrow-left"></i> 戻る
+            </a>
+            <h2>会員登録</h2>
+            <p>アカウントを作成して、すべての機能をご利用ください。</p>
+        </div>
+
+        <!-- 에러 메시지 -->
+        <div class="error-message" th:if="${error}" style="display:flex;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/register}" method="post" class="register-form" id="registerForm">
+
+            <!-- ID -->
+            <div class="form-group">
+                <label>ユーザーID <span class="required">*</span></label>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" th:value="${user?.username}"
+                           placeholder="英数字で入力" required minlength="4" maxlength="50"
+                           id="usernameInput">
+                </div>
+                <span class="field-message" id="usernameMsg"></span>
+            </div>
+
+            <!-- パスワード -->
+            <div class="form-group">
+                <label>パスワード <span class="required">*</span></label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="8文字以上"
+                           required minlength="8" id="passwordInput">
+                    <button type="button" class="toggle-pw" onclick="togglePassword('passwordInput', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- パスワード確認 -->
+            <div class="form-group">
+                <label>パスワード確認 <span class="required">*</span></label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="passwordConfirm" placeholder="パスワードを再入力"
+                           required id="passwordConfirmInput">
+                </div>
+                <span class="field-message" id="passwordMsg"></span>
+            </div>
+
+            <!-- ニックネーム -->
+            <div class="form-group">
+                <label>ニックネーム <span class="required">*</span></label>
+                <div class="input-group">
+                    <i class="fas fa-smile"></i>
+                    <input type="text" name="nickname" th:value="${user?.nickname}"
+                           placeholder="ニックネームを入力" required maxlength="50"
+                           id="nicknameInput">
+                </div>
+                <span class="field-message" id="nicknameMsg"></span>
+            </div>
+
+            <!-- メールアドレス -->
+            <div class="form-group">
+                <label>メールアドレス <span class="required">*</span></label>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" th:value="${user?.email}"
+                           placeholder="example@email.com" required
+                           id="emailInput">
+                </div>
+                <span class="field-message" id="emailMsg"></span>
+            </div>
+
+            <!-- 電話番号 -->
+            <div class="form-group">
+                <label>電話番号</label>
+                <div class="input-group">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" name="phone" th:value="${user?.phone}"
+                           placeholder="080-1234-5678">
+                </div>
+            </div>
+
+            <!-- 性別 + 生年月日 (横並び) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>性別</label>
+                    <div class="input-group">
+                        <i class="fas fa-venus-mars"></i>
+                        <select name="gender">
+                            <option value="">選択</option>
+                            <option value="MALE" th:selected="${user?.gender == 'MALE'}">男性</option>
+                            <option value="FEMALE" th:selected="${user?.gender == 'FEMALE'}">女性</option>
+                            <option value="OTHER" th:selected="${user?.gender == 'OTHER'}">その他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>生年月日</label>
+                    <div class="input-group">
+                        <i class="fas fa-calendar"></i>
+                        <input type="date" name="birthdate" th:value="${user?.birthdate}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINE チャットボット同意 -->
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="lineAgreed" value="1">
+                    <span class="checkmark"></span>
+                    <span>LINEチャットボットの通知を受け取る</span>
+                </label>
+            </div>
+
+            <!-- 회원가입 버튼 -->
+            <button type="submit" class="btn-submit btn-register" id="submitBtn">
+                <i class="fas fa-user-plus"></i> 会員登録
+            </button>
+
+            <!-- 로그인 링크 -->
+            <div class="login-redirect">
+                <span>すでにアカウントをお持ちですか？</span>
+                <a href="/">ログイン</a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+// 비밀번호 보기/숨기기 토글
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+// 비밀번호 일치 확인 (실시간)
+document.getElementById('passwordConfirmInput').addEventListener('input', function() {
+    const pw = document.getElementById('passwordInput').value;
+    const msg = document.getElementById('passwordMsg');
+    if (this.value && this.value !== pw) {
+        msg.textContent = 'パスワードが一致しません。';
+        msg.className = 'field-message error';
+    } else if (this.value && this.value === pw) {
+        msg.textContent = 'パスワードが一致します。';
+        msg.className = 'field-message success';
+    } else {
+        msg.textContent = '';
+    }
+});
+
+// username 중복 체크 (실시간)
+let usernameTimeout;
+document.getElementById('usernameInput').addEventListener('input', function() {
+    clearTimeout(usernameTimeout);
+    const msg = document.getElementById('usernameMsg');
+    const value = this.value.trim();
+
+    if (value.length < 4) {
+        msg.textContent = '4文字以上で入力してください。';
+        msg.className = 'field-message error';
+        return;
+    }
+
+    usernameTimeout = setTimeout(() => {
+        fetch(`/api/check-username?username=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    msg.textContent = '使用可能なIDです。';
+                    msg.className = 'field-message success';
+                } else {
+                    msg.textContent = 'すでに使用されているIDです。';
+                    msg.className = 'field-message error';
+                }
+            });
+    }, 500);
+});
+
+// 닉네임 중복 체크 (실시간)
+let nicknameTimeout;
+document.getElementById('nicknameInput').addEventListener('input', function() {
+    clearTimeout(nicknameTimeout);
+    const msg = document.getElementById('nicknameMsg');
+    const value = this.value.trim();
+
+    if (!value) { msg.textContent = ''; return; }
+
+    nicknameTimeout = setTimeout(() => {
+        fetch(`/api/check-nickname?nickname=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    msg.textContent = '使用可能なニックネームです。';
+                    msg.className = 'field-message success';
+                } else {
+                    msg.textContent = 'すでに使用されているニックネームです。';
+                    msg.className = 'field-message error';
+                }
+            });
+    }, 500);
+});
+
+// 이메일 중복 체크 (실시간)
+let emailTimeout;
+document.getElementById('emailInput').addEventListener('input', function() {
+    clearTimeout(emailTimeout);
+    const msg = document.getElementById('emailMsg');
+    const value = this.value.trim();
+
+    if (!value || !value.includes('@')) { msg.textContent = ''; return; }
+
+    emailTimeout = setTimeout(() => {
+        fetch(`/api/check-email?email=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    msg.textContent = '使用可能なメールアドレスです。';
+                    msg.className = 'field-message success';
+                } else {
+                    msg.textContent = 'すでに使用されているメールアドレスです。';
+                    msg.className = 'field-message error';
+                }
+            });
+    }, 500);
+});
+</script>
+
+</body>
+</html>
