@@ -49,7 +49,7 @@ public class SecurityConfig {
 
                 // 관리자 전용 페이지
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // 나머지는 로그인 필요 (리뷰, 신고, 문의 등)
                 .anyRequest().authenticated()
             )
