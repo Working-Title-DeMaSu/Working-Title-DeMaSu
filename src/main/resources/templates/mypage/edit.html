@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロフィール編集 - トイレマップ</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/mypage.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="mypage">
+
+<header class="mypage-header">
+  <div class="header-inner">
+    <a th:href="@{/}" class="logo">
+      <i class="fa-solid fa-location-dot"></i>
+      <span>トイレマップ</span>
+    </a>
+    <div class="user-info">
+      <div class="user-menu-wrap" onclick="toggleUserMenu()">
+        <div class="mypage-user-icon">
+          <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール">
+          <i th:if="${user.iconUrl == null}" class="fa-solid fa-user"></i>
+        </div>
+        <span class="user-nickname" th:text="${user.nickname}">ユーザー</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+      <div class="mypage-dropdown" id="userDropdown">
+        <a th:href="@{/mypage}"><i class="fa-solid fa-user"></i> マイページ</a>
+        <a th:href="@{/mypage/edit}"><i class="fa-solid fa-pen"></i> プロフィール編集</a>
+        <a th:href="@{/mypage/password}"><i class="fa-solid fa-lock"></i> パスワード変更</a>
+        <hr>
+        <a th:href="@{/logout}"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="mypage-main">
+  <div class="mypage-container">
+
+    <nav class="mp-breadcrumb">
+      <a th:href="@{/mypage}">マイページ</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <span>プロフィール編集</span>
+    </nav>
+
+    <div class="mp-page-title">
+      <h1><i class="fa-solid fa-pen-to-square"></i> プロフィール編集</h1>
+    </div>
+
+    <div th:if="${error}" class="mp-alert mp-alert-error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span th:text="${error}"></span>
+    </div>
+    <div th:if="${success}" class="mp-alert mp-alert-success">
+      <i class="fa-solid fa-circle-check"></i>
+      <span th:text="${success}"></span>
+    </div>
+
+    <div class="mp-edit-layout">
+
+      <!-- 아이콘 섹션 -->
+      <div class="mp-edit-icon-section">
+        <div class="mp-icon-preview" id="iconPreviewWrap">
+          <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール画像" id="iconPreviewImg">
+          <i th:if="${user.iconUrl == null}" class="fa-solid fa-user" id="iconPreviewIcon"></i>
+        </div>
+        <label class="mp-icon-upload-btn" for="iconFile">
+          <i class="fa-solid fa-camera"></i> 画像を変更
+        </label>
+        <input type="file" id="iconFile" name="iconFile" accept="image/*"
+               style="display:none" onchange="previewIcon(this)">
+        <p class="mp-icon-hint">JPG, PNG (最大5MB)</p>
+      </div>
+
+      <!-- 폼 섹션 -->
+      <div class="mp-edit-form-section">
+        <form th:action="@{/mypage/edit}" method="post" enctype="multipart/form-data">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <input type="hidden" name="id" th:value="${user.id}">
+
+          <div class="mp-form-group">
+            <label for="nickname">
+              <i class="fa-solid fa-tag"></i> ニックネーム <span class="mp-required">*</span>
+            </label>
+            <input type="text" id="nickname" name="nickname"
+                   th:value="${user.nickname}"
+                   placeholder="ニックネームを入力"
+                   maxlength="20" required>
+            <span class="mp-field-hint">20文字以内</span>
+          </div>
+
+          <div class="mp-form-group">
+            <label for="email">
+              <i class="fa-solid fa-envelope"></i> メールアドレス <span class="mp-required">*</span>
+            </label>
+            <input type="email" id="email" name="email"
+                   th:value="${user.email}"
+                   placeholder="メールアドレスを入力" required>
+          </div>
+
+          <div class="mp-form-group">
+            <label for="phone">
+              <i class="fa-solid fa-phone"></i> 電話番号
+            </label>
+            <input type="tel" id="phone" name="phone"
+                   th:value="${user.phone}"
+                   placeholder="電話番号を入力">
+          </div>
+
+          <div class="mp-form-row">
+            <div class="mp-form-group">
+              <label for="gender">
+                <i class="fa-solid fa-venus-mars"></i> 性別
+              </label>
+              <select id="gender" name="gender">
+                <option value="">選択してください</option>
+                <option value="M" th:selected="${user.gender == 'M'}">男性</option>
+                <option value="F" th:selected="${user.gender == 'F'}">女性</option>
+                <option value="OTHER" th:selected="${user.gender == 'OTHER'}">その他</option>
+              </select>
+            </div>
+
+            <div class="mp-form-group">
+              <label for="birthdate">
+                <i class="fa-solid fa-cake-candles"></i> 生年月日
+              </label>
+              <input type="date" id="birthdate" name="birthdate"
+                     th:value="${user.birthdate}">
+            </div>
+          </div>
+
+          <div class="mp-form-actions">
+            <a th:href="@{/mypage}" class="mp-btn-cancel">
+              <i class="fa-solid fa-xmark"></i> キャンセル
+            </a>
+            <button type="submit" class="mp-btn-save">
+              <i class="fa-solid fa-floppy-disk"></i> 保存する
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script th:src="@{/js/app.js}"></script>
+<script>
+  function toggleUserMenu() {
+      document.getElementById('userDropdown').classList.toggle('active');
+  }
+  document.addEventListener('click', function(e) {
+      const wrap = document.querySelector('.user-menu-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+          document.getElementById('userDropdown').classList.remove('active');
+      }
+  });
+
+  function previewIcon(input) {
+      if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const wrap = document.getElementById('iconPreviewWrap');
+              wrap.innerHTML = `<img src="${e.target.result}" alt="プレビュー"
+                  style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          };
+          reader.readAsDataURL(input.files[0]);
+      }
+  }
+</script>
+</body>
+</html>
