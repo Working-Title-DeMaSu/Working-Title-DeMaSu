@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ダッシュボード - デマス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A1A1A;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: #62a897;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .admin-menu {
+            position: relative;
+        }
+        .admin-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .admin-menu-btn:hover { background: #F5F5F5; }
+        .admin-avatar {
+            width: 32px; height: 32px;
+            background: #E8F5F1;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .admin-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            min-width: 160px;
+            overflow: hidden;
+            z-index: 200;
+        }
+        .admin-dropdown.open { display: block; }
+        .admin-dropdown a {
+            display: block;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .admin-dropdown a:hover { background: #F5F5F5; }
+        .admin-dropdown a.logout { color: #E53E3E; }
+
+        /* ── Hero Banner ── */
+        .hero {
+            background: linear-gradient(135deg, #00C896 0%, #00A67A 100%);
+            padding: 28px 32px 20px;
+            color: white;
+        }
+        .hero h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .hero p {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-bottom: 20px;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: none;
+        }
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border-radius: 8px 8px 0 0;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.85);
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.3); }
+        .tab-btn.active {
+            background: white;
+            color: #00C896;
+            font-weight: 700;
+        }
+
+        /* ── Main Content ── */
+        .content {
+            flex: 1;
+            padding: 24px 32px 48px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── Tab Panels ── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Card ── */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1A1A1A;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F5F5F5;
+            border-radius: 8px;
+            padding: 8px 14px;
+        }
+        .search-box input {
+            border: none;
+            background: none;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-size: 13px;
+            outline: none;
+            width: 180px;
+            color: #333;
+        }
+        .search-box input::placeholder { color: #AAA; }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: #888;
+            background: #FAFAFA;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        tbody tr {
+            border-bottom: 1px solid #F8F8F8;
+            transition: background 0.15s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #FAFAFA; }
+        tbody td {
+            padding: 14px 20px;
+            font-size: 14px;
+            color: #333;
+        }
+        .td-username { font-weight: 700; color: #1A1A1A; }
+        .td-id { color: #999; font-size: 13px; }
+
+        /* ── Status Badge ── */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-active   { background: #E8F5F1; color: #007A5E; }
+        .badge-suspended{ background: #FFF3E0; color: #E65100; }
+        .badge-deleted  { background: #FFEBEE; color: #C62828; }
+
+        /* ── Action Buttons ── */
+        .action-btns { display: flex; gap: 6px; }
+        .btn-suspend {
+            padding: 5px 12px;
+            border: 1.5px solid #FF9800;
+            color: #FF9800;
+            background: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: all 0.15s;
+        }
+        .btn-suspend:hover { background: #FF9800; color: white; }
+        .btn-delete {
+            padding: 5px 12px;
+            border: 1.5px solid #E53E3E;
+            color: #E53E3E;
+            background: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: all 0.15s;
+        }
+        .btn-delete:hover { background: #E53E3E; color: white; }
+
+        /* ── Empty / Loading ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #AAA;
+            font-size: 14px;
+        }
+        .empty-state svg { margin-bottom: 12px; }
+
+        /* ── Pagination ── */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 20px;
+            border-top: 1px solid #F0F0F0;
+        }
+        .page-btn {
+            width: 34px; height: 34px;
+            border: 1.5px solid #E0E0E0;
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .page-btn:hover { border-color: #00C896; color: #00C896; }
+        .page-btn.active { background: #00C896; border-color: #00C896; color: white; }
+
+        /* ── Coming Soon Panel ── */
+        .coming-soon {
+            text-align: center;
+            padding: 80px 20px;
+            color: #BBB;
+        }
+        .coming-soon svg { margin-bottom: 16px; }
+        .coming-soon h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #CCC; }
+        .coming-soon p { font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+    <a href="/" class="logo">
+        <div class="logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+        </div>
+        トイレマップ
+    </a>
+
+    <div class="admin-menu">
+        <button class="admin-menu-btn" onclick="toggleAdminMenu(event)">
+            <div class="admin-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            管理者
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                <path d="m6 9 6 6 6-6"></path>
+            </svg>
+        </button>
+        <div class="admin-dropdown" id="adminDropdown">
+            <a href="/">マップに戻る</a>
+            <a href="/logout" class="logout">ログアウト</a>
+        </div>
+    </div>
+</header>
+
+<!-- ── Hero Banner + Tabs ── -->
+<div class="hero">
+    <h1>管理者ダッシュボード</h1>
+    <p>システム全体の管理と監視</p>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('users', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            会員管理
+        </button>
+        <button class="tab-btn" onclick="switchTab('reports', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            通報管理
+        </button>
+        <button class="tab-btn" onclick="switchTab('toilets', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            トイレ承認
+        </button>
+        <button class="tab-btn" onclick="switchTab('inquiries', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            お問い合わせ
+        </button>
+    </div>
+</div>
+
+<!-- ── Content ── -->
+<div class="content">
+
+    <!-- 会員管理 -->
+    <div id="panel-users" class="tab-panel active">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">会員一覧</span>
+                <div class="search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AAA" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="userSearchInput" placeholder="検索..." oninput="onUserSearch(this.value)">
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ユーザー名</th>
+                        <th>メール</th>
+                        <th>登録日</th>
+                        <th>ステータス</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <tr><td colspan="6">
+                        <div class="empty-state">読み込み中...</div>
+                    </td></tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="userPagination"></div>
+        </div>
+    </div>
+
+    <!-- 通報管理 -->
+    <div id="panel-reports" class="tab-panel">
+        <div class="card">
+            <div class="coming-soon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DDD" stroke-width="1.5">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <h3>通報管理</h3>
+                <p>準備中です</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- トイレ承認 -->
+    <div id="panel-toilets" class="tab-panel">
+        <div class="card">
+            <div class="coming-soon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DDD" stroke-width="1.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <h3>トイレ承認</h3>
+                <p>準備中です</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- お問い合わせ -->
+    <div id="panel-inquiries" class="tab-panel">
+        <div class="card">
+            <div class="coming-soon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DDD" stroke-width="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h3>お問い合わせ</h3>
+                <p>準備中です</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    // ── Tab switching ──
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        btn.classList.add('active');
+        if (name === 'users') loadUsers(0, document.getElementById('userSearchInput').value);
+    }
+
+    // ── Admin dropdown ──
+    function toggleAdminMenu(e) {
+        e.stopPropagation();
+        document.getElementById('adminDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', function () {
+        document.getElementById('adminDropdown').classList.remove('open');
+    });
+
+    // ── User List ──
+    let userCurrentPage = 0;
+    let userSearchKeyword = '';
+    let userSearchTimer = null;
+
+    function onUserSearch(val) {
+        clearTimeout(userSearchTimer);
+        userSearchTimer = setTimeout(() => {
+            userCurrentPage = 0;
+            userSearchKeyword = val;
+            loadUsers(0, val);
+        }, 350);
+    }
+
+    function loadUsers(page, keyword) {
+        userCurrentPage = page;
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">読み込み中...</div></td></tr>';
+
+        const params = new URLSearchParams({ page, keyword: keyword || '' });
+        fetch('/api/admin/users?' + params)
+            .then(r => r.json())
+            .then(res => {
+                if (!res.data || res.data.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">データがありません</div></td></tr>';
+                    document.getElementById('userPagination').innerHTML = '';
+                    return;
+                }
+                renderUserTable(res.data.content);
+                renderPagination(res.data, 'userPagination', (p) => loadUsers(p, userSearchKeyword));
+            })
+            .catch(() => {
+                tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">読み込みに失敗しました</div></td></tr>';
+            });
+    }
+
+    function renderUserTable(users) {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = users.map(u => {
+            const statusBadge = u.status === 'ACTIVE'
+                ? '<span class="badge badge-active">アクティブ</span>'
+                : u.status === 'SUSPENDED'
+                    ? '<span class="badge badge-suspended">停止中</span>'
+                    : '<span class="badge badge-deleted">削除済</span>';
+
+            const date = u.createdAt ? u.createdAt.substring(0, 10) : '-';
+
+            return `<tr>
+                <td class="td-id">${u.id}</td>
+                <td class="td-username">${u.nickname || u.username}</td>
+                <td>${u.email}</td>
+                <td>${date}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn-suspend" onclick="suspendUser(${u.id})">停止</button>
+                        <button class="btn-delete" onclick="deleteUser(${u.id})">削除</button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderPagination(data, containerId, onPageClick) {
+        const container = document.getElementById(containerId);
+        if (data.totalPages <= 1) { container.innerHTML = ''; return; }
+
+        let html = '';
+        for (let i = 0; i < data.totalPages; i++) {
+            html += `<button class="page-btn ${i === data.number ? 'active' : ''}" onclick="(${onPageClick.toString()})(${i})">${i + 1}</button>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // ── Actions ──
+    function suspendUser(id) {
+        if (!confirm('このユーザーを停止しますか？')) return;
+        fetch(`/api/admin/users/${id}/suspend`, { method: 'POST' })
+            .then(r => r.json())
+            .then(() => loadUsers(userCurrentPage, userSearchKeyword))
+            .catch(() => alert('エラーが発生しました'));
+    }
+
+    function deleteUser(id) {
+        if (!confirm('このユーザーを削除しますか？この操作は元に戻せません。')) return;
+        fetch(`/api/admin/users/${id}/delete`, { method: 'POST' })
+            .then(r => r.json())
+            .then(() => loadUsers(userCurrentPage, userSearchKeyword))
+            .catch(() => alert('エラーが発生しました'));
+    }
+
+    // ── Init ──
+    loadUsers(0, '');
+</script>
+</body>
+</html>
