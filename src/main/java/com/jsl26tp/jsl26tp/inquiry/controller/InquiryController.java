@@ -1,43 +1,62 @@
 package com.jsl26tp.jsl26tp.inquiry.controller;
 
-import com.jsl26tp.jsl26tp.auth.domain.User;
-import com.jsl26tp.jsl26tp.auth.service.UserService;
+import com.jsl26tp.jsl26tp.common.ApiResponse;
 import com.jsl26tp.jsl26tp.config.CustomUserDetails;
 import com.jsl26tp.jsl26tp.inquiry.domain.Inquiry;
 import com.jsl26tp.jsl26tp.inquiry.service.InquiryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+/**
+ * Inquiry Controller (User-facing)
+ * - User inquiry CRUD API
+ * - Admin answer handling is in AdminController
+ */
+@RestController
+@RequestMapping("/api/inquiries")
 @RequiredArgsConstructor
 public class InquiryController {
 
     private final InquiryService inquiryService;
-    private final UserService userService;
 
-    // 문의하기 폼 (GET /inquiry)
-    @GetMapping("/inquiry")
-    public String inquiryForm(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
-        // 내 문의 내역도 함께 표시
-        User user = userService.findByUsername(userDetails.getUsername());
-        model.addAttribute("inquiries", inquiryService.findByWriterId(user.getId()));
-        return "inquiry/index";
+    // Create inquiry - POST /api/inquiries
+    @PostMapping
+    public ApiResponse<Void> createInquiry(
+            @RequestBody Inquiry inquiry,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        inquiry.setWriterId(user.getId());
+        inquiryService.createInquiry(inquiry);
+        return ApiResponse.ok();
     }
 
-    // 문의 제출 (POST /inquiry)
-    @PostMapping("/inquiry")
-    public String submitInquiry(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                @RequestParam String title,
-                                @RequestParam String content) {
-        User user = userService.findByUsername(userDetails.getUsername());
-        Inquiry inquiry = new Inquiry();
-        inquiry.setWriterId(user.getId());
-        inquiry.setTitle(title);
-        inquiry.setContent(content);
-        inquiryService.insertInquiry(inquiry);
-        return "redirect:/inquiry?success=true";
+    // Get my inquiries - GET /api/inquiries/my
+    @GetMapping("/my")
+    public ApiResponse<List<Inquiry>> getMyInquiries(
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        List<Inquiry> inquiries = inquiryService.findByWriterId(user.getId());
+        return ApiResponse.ok(inquiries);
+    }
+
+    // Get inquiry detail - GET /api/inquiries/{id}
+    @GetMapping("/{id}")
+    public ApiResponse<Inquiry> getInquiryDetail(@PathVariable Long id) {
+
+        Inquiry inquiry = inquiryService.getInquiryDetail(id);
+        return ApiResponse.ok(inquiry);
+    }
+
+    // Delete inquiry (soft delete, owner only) - DELETE /api/inquiries/{id}
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteInquiry(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        inquiryService.deleteInquiry(id, user.getId());
+        return ApiResponse.ok();
     }
 }
