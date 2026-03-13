@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新しいトイレを追加 - デマス</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/footer.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -315,6 +316,9 @@
 </head>
 <body>
 
+<!-- Header + Toast (共通フラグメント) -->
+<div th:replace="~{fragments/header :: headerAndToast}"></div>
+
 <!-- 뒤로가기 -->
 <a href="/" class="back-link">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -580,6 +584,7 @@
 
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-
+<!-- 共通ヘッダーJS -->
+<script src="/js/header.js"></script>
 </body>
 </html>

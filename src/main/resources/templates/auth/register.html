@@ -1,24 +1,16 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>会員登録 - デマス</title>
+    <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/register.css">
     <link rel="stylesheet" href="/css/footer.css">
 </head>
 <body>
-<!-- Header -->
-<header class="header">
-    <div class="logo" onclick="location.href='/'" style="cursor: pointer;">
-        <div class="logo-icon">D</div>
-        デマス
-    </div>
-    <div class="header-buttons">
-        <a href="/login" class="login-btn">ログイン</a>
-        <a href="/register" class="signup-btn">会員登録</a>
-    </div>
-</header>
+<!-- Header + Toast (共通フラグメント) -->
+<div th:replace="~{fragments/header :: headerAndToast}"></div>
 
 <!-- Main Content -->
 <main class="main-content">
@@ -111,5 +103,7 @@
 
 <!-- Footer -->
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- 共通ヘッダーJS -->
+<script src="/js/header.js"></script>
 </body>
 </html>
