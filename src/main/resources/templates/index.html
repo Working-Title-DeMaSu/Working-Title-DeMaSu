@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トイレマップ - デマス</title>
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/index.css?v=2">
     <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -216,10 +216,45 @@
     </div>
 </div>
 
+<!-- 修正提案モーダル -->
+<div id="editRequestModal" class="edit-request-modal" style="display: none;">
+    <div class="edit-request-content">
+        <button class="close-btn" onclick="closeEditRequestModal()">×</button>
+        <h2 class="edit-request-title">修正提案</h2>
+        <p class="edit-request-toilet-name" id="editRequestToiletName"></p>
+        <input type="hidden" id="editRequestToiletId">
+
+        <div class="form-group">
+            <label>カテゴリ</label>
+            <select id="editRequestCategory" class="edit-request-select">
+                <option value="">選択してください</option>
+                <option value="LOCATION">位置情報</option>
+                <option value="FACILITY">施設情報</option>
+                <option value="HOURS">営業時間</option>
+                <option value="CLOSED">閉鎖・移転</option>
+                <option value="OTHER">その他</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>修正内容</label>
+            <textarea id="editRequestContent" class="edit-request-textarea" rows="5" placeholder="修正が必要な内容を入力してください"></textarea>
+        </div>
+
+        <button class="edit-request-submit-btn" onclick="submitEditRequest()">
+            <i class="fas fa-paper-plane"></i> 送信
+        </button>
+    </div>
+</div>
+
 <!-- Naver Maps API -->
 <script type="text/javascript" th:src="'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapsClientId} + '&language=ja'"></script>
+<!-- ログイン状態をJSに渡す -->
+<script th:inline="javascript">
+    window.__isLoggedIn = [[${#authorization.expression('isAuthenticated()')}]];
+</script>
 <!-- App JS -->
-<script th:src="@{/js/app.js(v=5)}"></script>
+<script th:src="@{/js/app.js(v=7)}"></script>
 <script>
     // /login 으로 리다이렉트된 경우 자동으로 로그인 모달 열기
     if (window.location.pathname === '/login') {

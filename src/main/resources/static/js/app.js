@@ -17,6 +17,9 @@ var currentPage = 1;         // current page for pagination
 var ITEMS_PER_PAGE = 4;      // items per page
 var allToilets = [];         // store all toilets for pagination
 var isDetailView = false;    // 상세보기 모드 여부
+var currentDetailToilet = null;  // 현재 상세보기 중인 화장실
+var currentDetailTags = [];      // 현재 상세보기 태그
+var currentDetailReviews = [];   // 현재 상세보기 리뷰
 
 // ========== 네이버맵 초기화 ==========
 function initMap() {
@@ -266,7 +269,7 @@ function renderPage() {
             metaHtml += '<span class="toilet-card-hours"><i class="far fa-clock"></i> 24時間</span>';
         }
 
-        return '<div class="toilet-card" onclick="focusToilet(' + toilet.id + ',' + toilet.latitude + ',' + toilet.longitude + ')">' +
+        return '<div class="toilet-card" onclick="viewToiletDetail(' + toilet.id + ')">' +
             '<div class="toilet-card-header">' +
                 '<div class="toilet-card-name">' + toilet.name + '</div>' +
                 (distanceHtml ? '<div class="toilet-card-distance">' + distanceHtml + '</div>' : '') +
@@ -274,7 +277,7 @@ function renderPage() {
             '<div class="toilet-card-address">' + (toilet.address || '') + '</div>' +
             (metaHtml ? '<div class="toilet-card-meta">' + metaHtml + '</div>' : '') +
             (tags ? '<div class="toilet-card-tags">' + tags + '</div>' : '') +
-            '<div class="toilet-card-detail-link"><i class="fas fa-lock"></i> 詳細情報を見るにはログインが必要です →</div>' +
+            '<div class="toilet-card-detail-link"><i class="fas fa-info-circle"></i> 詳しく見る →</div>' +
         '</div>';
     }).join('');
 
@@ -376,19 +379,154 @@ function viewToiletDetail(id) {
     });
 }
 
-// ========== 상세 사이드바 표시 ==========
+// ========== 상세 사이드바 표시 (탭 구조) ==========
 function showDetailSidebar(toilet, tags, reviews) {
     var list = document.getElementById('toiletList');
+    currentDetailToilet = toilet;
+    currentDetailTags = tags;
+    currentDetailReviews = reviews;
 
-    // --- 시설 정보 ---
+    // --- 태그 ---
+    var tagsHtml = '';
+    if (tags && tags.length > 0) {
+        tagsHtml = '<div class="detail-tags">';
+        for (var t = 0; t < tags.length; t++) {
+            tagsHtml += '<span class="detail-tag">' + escapeHtml(tags[t].tagName) + '</span>';
+        }
+        tagsHtml += '</div>';
+    }
+
+    // --- 평점 요약 ---
+    var ratingHtml = '';
+    if (toilet.avgScore > 0) {
+        ratingHtml =
+            '<div class="detail-rating-summary">' +
+                '<div class="detail-rating-stars">' + generateStars(toilet.avgScore) + '</div>' +
+                '<span class="detail-rating-number">' + toilet.avgScore.toFixed(1) + '</span>' +
+                '<span class="detail-rating-count">(' + (toilet.reviewCount || 0) + '件のレビュー)</span>' +
+            '</div>';
+    }
+
+    // --- 거리 ---
+    var distanceHtml = '';
+    if (toilet.distance) {
+        var distKm = toilet.distance >= 1000 ?
+            (toilet.distance / 1000).toFixed(1) + 'km' :
+            Math.round(toilet.distance) + 'm';
+        distanceHtml = '<span class="detail-distance"><i class="fas fa-walking"></i> ' + distKm + '</span>';
+    }
+
+    // --- 공통 헤더 + 탭 바 + 탭 컨텐츠 ---
+    list.innerHTML =
+        '<div class="detail-card">' +
+            // 공통 헤더
+            '<div class="detail-header">' +
+                '<button class="detail-back" onclick="backToList()"><i class="fas fa-arrow-left"></i></button>' +
+                '<h3>' + escapeHtml(toilet.name) + '</h3>' +
+            '</div>' +
+            '<div class="detail-address"><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(toilet.address || '') + '</div>' +
+            (distanceHtml ? '<div class="detail-meta-row">' + distanceHtml + '</div>' : '') +
+            (toilet.openHours ? '<div class="detail-hours"><i class="fas fa-clock"></i> ' + escapeHtml(toilet.openHours) + '</div>' : '') +
+            ratingHtml +
+            tagsHtml +
+            // 탭 바
+            '<div class="detail-tabs">' +
+                '<button class="detail-tab active" onclick="switchDetailTab(\'overview\', this)">概要</button>' +
+                '<button class="detail-tab" onclick="switchDetailTab(\'info\', this)">情報</button>' +
+                '<button class="detail-tab" onclick="switchDetailTab(\'reviews\', this)">レビュー</button>' +
+            '</div>' +
+            // 탭 컨텐츠 영역
+            '<div id="detailTabContent" class="detail-tab-content">' +
+            '</div>' +
+        '</div>';
+
+    // 기본 탭: 개요
+    renderOverviewTab(toilet);
+
+    // 스크롤 맨 위로
+    list.scrollTop = 0;
+}
+
+// ========== 탭 전환 ==========
+function switchDetailTab(tabName, btn) {
+    // 탭 버튼 active 전환
+    var tabs = document.querySelectorAll('.detail-tab');
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+    if (btn) btn.classList.add('active');
+
+    // 탭 컨텐츠 렌더링
+    if (tabName === 'overview') {
+        renderOverviewTab(currentDetailToilet);
+    } else if (tabName === 'info') {
+        renderInfoTab(currentDetailToilet);
+    } else if (tabName === 'reviews') {
+        renderReviewsTab(currentDetailToilet, currentDetailReviews);
+    }
+}
+
+// ========== 개요 탭 ==========
+function renderOverviewTab(toilet) {
+    var content = document.getElementById('detailTabContent');
+    if (!content) return;
+
+    var html =
+        '<div class="detail-action-buttons">' +
+            '<button class="detail-action-btn" onclick="openNaverDirections(' + toilet.latitude + ',' + toilet.longitude + ')">' +
+                '<i class="fas fa-directions"></i>' +
+                '<span>経路案内</span>' +
+            '</button>' +
+            '<button class="detail-action-btn" onclick="shareToilet(' + toilet.id + ')">' +
+                '<i class="fas fa-share-alt"></i>' +
+                '<span>共有</span>' +
+            '</button>' +
+            '<button class="detail-action-btn" onclick="openEditRequestModal()">' +
+                '<i class="fas fa-edit"></i>' +
+                '<span>修正提案</span>' +
+            '</button>' +
+        '</div>';
+
+    // 전화번호
+    if (toilet.phone) {
+        html += '<div class="detail-phone"><i class="fas fa-phone"></i> ' + escapeHtml(toilet.phone) + '</div>';
+    }
+
+    // 간단한 시설 요약
+    var quickFacilities = [];
+    if (toilet.is24hours) quickFacilities.push('<span class="quick-facility"><i class="fas fa-check-circle detail-yes"></i> 24時間</span>');
+    if (toilet.isWheelchair) quickFacilities.push('<span class="quick-facility"><i class="fas fa-check-circle detail-yes"></i> 車椅子</span>');
+    if (toilet.hasDiaper) quickFacilities.push('<span class="quick-facility"><i class="fas fa-check-circle detail-yes"></i> おむつ台</span>');
+    if (toilet.hasEmergency) quickFacilities.push('<span class="quick-facility"><i class="fas fa-check-circle detail-yes"></i> 非常ベル</span>');
+    if (toilet.hasCctv) quickFacilities.push('<span class="quick-facility"><i class="fas fa-check-circle detail-yes"></i> CCTV</span>');
+
+    if (quickFacilities.length > 0) {
+        html += '<div class="detail-section-title">施設概要</div>';
+        html += '<div class="detail-quick-facilities">' + quickFacilities.join('') + '</div>';
+    }
+
+    content.innerHTML = html;
+}
+
+// ========== 정보 탭 ==========
+function renderInfoTab(toilet) {
+    var content = document.getElementById('detailTabContent');
+    if (!content) return;
+
+    var isLoggedIn = window.__isLoggedIn || false;
+
+    // 시설 정보
     var facilityItems = '';
-    facilityItems += '<div class="detail-facility-item">' + (toilet.is24hours ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 24時間利用可能</div>';
     facilityItems += '<div class="detail-facility-item">' + (toilet.isWheelchair ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 車椅子対応</div>';
-    facilityItems += '<div class="detail-facility-item">' + (toilet.hasDiaper ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' おむつ交換台</div>';
+    facilityItems += '<div class="detail-facility-item">' + (toilet.hasPaper ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' トイレットペーパー</div>';
+    facilityItems += '<div class="detail-facility-item">' + (toilet.hasSoap ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 石鹸</div>';
+    facilityItems += '<div class="detail-facility-item">' + (toilet.hasSanitary ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 生理用品自販機</div>';
     facilityItems += '<div class="detail-facility-item">' + (toilet.hasEmergency ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 非常ベル</div>';
     facilityItems += '<div class="detail-facility-item">' + (toilet.hasCctv ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' CCTV設置</div>';
+    facilityItems += '<div class="detail-facility-item">' + (toilet.is24hours ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' 24時間利用可能</div>';
+    facilityItems += '<div class="detail-facility-item">' + (toilet.hasDiaper ? '<i class="fas fa-check-circle detail-yes"></i>' : '<i class="fas fa-times-circle detail-no"></i>') + ' おむつ交換台</div>';
 
-    // --- 개실수 ---
+    // 개실수
     var toiletCounts = '';
     if (toilet.maleToiletCount > 0 || toilet.maleUrinalCount > 0) {
         toiletCounts += '<div class="detail-count"><i class="fas fa-male"></i> 男性用: 大便器 ' + (toilet.maleToiletCount || 0) + ' / 小便器 ' + (toilet.maleUrinalCount || 0) + '</div>';
@@ -397,76 +535,236 @@ function showDetailSidebar(toilet, tags, reviews) {
         toiletCounts += '<div class="detail-count"><i class="fas fa-female"></i> 女性用: 大便器 ' + (toilet.femaleToiletCount || 0) + '</div>';
     }
 
-    // --- 태그 ---
-    var tagsHtml = '';
-    if (tags && tags.length > 0) {
-        tagsHtml = '<div class="detail-section-title">タグ</div><div class="detail-tags">';
-        for (var t = 0; t < tags.length; t++) {
-            tagsHtml += '<span class="detail-tag">' + escapeHtml(tags[t].tagName) + '</span>';
+    var html = '';
+
+    if (isLoggedIn) {
+        // 로그인 상태: 전체 정보 표시
+        html += '<div class="detail-section-title">施設情報</div>';
+        html += '<div class="detail-facilities">' + facilityItems + '</div>';
+        if (toiletCounts) {
+            html += '<div class="detail-section-title">個室数</div>' + toiletCounts;
         }
-        tagsHtml += '</div>';
-    }
-
-    // --- 별점 ---
-    var ratingHtml = '';
-    if (toilet.avgScore > 0) {
-        ratingHtml = '<div class="detail-section-title">評価</div>' +
-            '<div class="detail-rating-summary">' +
-                '<div class="detail-rating-stars">' + generateStars(toilet.avgScore) + '</div>' +
-                '<span class="detail-rating-number">' + toilet.avgScore.toFixed(1) + '</span>' +
-                '<span class="detail-rating-count">(' + (toilet.reviewCount || 0) + '件)</span>' +
-            '</div>';
-    }
-
-    // --- 리뷰 작성 버튼 ---
-    var writeReviewBtn =
-        '<div class="detail-write-review">' +
-            '<a href="/review/write?toiletId=' + toilet.id + '" class="btn-write-review">' +
-                '<i class="fas fa-pen"></i> レビューを書く' +
-            '</a>' +
+    } else {
+        // 비로그인: 블러 처리
+        html += '<div class="detail-section-title">施設情報</div>';
+        html += '<div class="blur-wrapper">';
+        html += '<div class="blur-content">' +
+            '<div class="detail-facilities">' + facilityItems + '</div>' +
+            (toiletCounts ? '<div class="detail-section-title">個室数</div>' + toiletCounts : '') +
         '</div>';
+        html += '<div class="blur-overlay">' +
+            '<i class="fas fa-lock"></i>' +
+            '<p>ログインすると全ての情報が見られます</p>' +
+            '<button class="blur-login-btn" onclick="openLoginModal()">ログイン</button>' +
+        '</div>';
+        html += '</div>';
+    }
 
-    // --- 리뷰 목록 ---
-    var reviewsHtml = '';
-    reviewsHtml += '<div class="detail-section-title">レビュー' +
-        (reviews.length > 0 ? ' (' + reviews.length + '件)' : '') +
+    content.innerHTML = html;
+}
+
+// ========== 리뷰 탭 ==========
+function renderReviewsTab(toilet, reviews) {
+    var content = document.getElementById('detailTabContent');
+    if (!content) return;
+
+    var isLoggedIn = window.__isLoggedIn || false;
+
+    var html = '';
+
+    // 리뷰 탭 헤더: 작성 버튼 + 정렬
+    html += '<div class="review-tab-header">';
+    if (isLoggedIn) {
+        html += '<a href="/review/write?toiletId=' + toilet.id + '" class="btn-write-review">' +
+            '<i class="fas fa-pen"></i> レビューを書く</a>';
+    } else {
+        html += '<button class="btn-write-review" onclick="openLoginModal()">' +
+            '<i class="fas fa-pen"></i> レビューを書く</button>';
+    }
+
+    if (reviews && reviews.length > 1) {
+        html += '<select class="review-sort-select" onchange="sortReviews(this.value)">' +
+            '<option value="latest">最新順</option>' +
+            '<option value="scoreDesc">高評価順</option>' +
+            '<option value="scoreAsc">低評価順</option>' +
+        '</select>';
+    }
+    html += '</div>';
+
+    // 리뷰 목록
+    html += '<div class="detail-section-title">レビュー' +
+        (reviews && reviews.length > 0 ? ' (' + reviews.length + '件)' : '') +
         '</div>';
 
     if (!reviews || reviews.length === 0) {
-        reviewsHtml += '<div class="detail-reviews-empty">' +
+        html += '<div class="detail-reviews-empty">' +
             '<i class="fas fa-comment-slash"></i>' +
             '<p>まだレビューがありません</p>' +
             '<p class="detail-reviews-empty-sub">最初のレビューを書いてみませんか？</p>' +
         '</div>';
     } else {
-        reviewsHtml += '<div class="detail-reviews-list">';
+        html += '<div id="reviewsList" class="detail-reviews-list">';
         for (var r = 0; r < reviews.length; r++) {
-            reviewsHtml += renderReviewCard(reviews[r]);
+            html += renderReviewCard(reviews[r]);
         }
-        reviewsHtml += '</div>';
+        html += '</div>';
     }
 
-    // --- 전체 조립 ---
-    list.innerHTML =
-        '<div class="detail-card">' +
-            '<div class="detail-header">' +
-                '<button class="detail-back" onclick="backToList()"><i class="fas fa-arrow-left"></i></button>' +
-                '<h3>' + escapeHtml(toilet.name) + '</h3>' +
-            '</div>' +
-            '<div class="detail-address"><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(toilet.address || '') + '</div>' +
-            (toilet.phone ? '<div class="detail-phone"><i class="fas fa-phone"></i> ' + escapeHtml(toilet.phone) + '</div>' : '') +
-            (toilet.openHours ? '<div class="detail-hours"><i class="fas fa-clock"></i> ' + escapeHtml(toilet.openHours) + '</div>' : '') +
-            tagsHtml +
-            '<div class="detail-section-title">施設情報</div>' +
-            '<div class="detail-facilities">' + facilityItems + '</div>' +
-            (toiletCounts ? '<div class="detail-section-title">個室数</div>' + toiletCounts : '') +
-            ratingHtml +
-            writeReviewBtn +
-            reviewsHtml +
-        '</div>';
+    content.innerHTML = html;
+}
 
-    // 스크롤 맨 위로
-    list.scrollTop = 0;
+// ========== 리뷰 프론트 정렬 ==========
+function sortReviews(sortType) {
+    if (!currentDetailReviews || currentDetailReviews.length === 0) return;
+
+    var sorted = currentDetailReviews.slice(); // 복사
+
+    if (sortType === 'latest') {
+        sorted.sort(function(a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+    } else if (sortType === 'scoreDesc') {
+        sorted.sort(function(a, b) {
+            return (parseInt(b.cleanScore) || 0) - (parseInt(a.cleanScore) || 0);
+        });
+    } else if (sortType === 'scoreAsc') {
+        sorted.sort(function(a, b) {
+            return (parseInt(a.cleanScore) || 0) - (parseInt(b.cleanScore) || 0);
+        });
+    }
+
+    var listEl = document.getElementById('reviewsList');
+    if (listEl) {
+        var html = '';
+        for (var r = 0; r < sorted.length; r++) {
+            html += renderReviewCard(sorted[r]);
+        }
+        listEl.innerHTML = html;
+    }
+}
+
+// ========== 네이버 지도 길찾기 ==========
+function openNaverDirections(lat, lng) {
+    var url = 'https://map.naver.com/v5/directions/-/' + lng + ',' + lat + ',,/transit';
+    window.open(url, '_blank');
+}
+
+// ========== 화장실 공유 (클립보드 복사) ==========
+function shareToilet(toiletId) {
+    var url = window.location.origin + '/?toiletId=' + toiletId;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+            showToast('URLをクリップボードにコピーしました！');
+        }).catch(function() {
+            showToast('コピーに失敗しました。');
+        });
+    } else {
+        // fallback
+        var textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('URLをクリップボードにコピーしました！');
+    }
+}
+
+// ========== 수정 제안 모달 ==========
+function openEditRequestModal() {
+    var isLoggedIn = window.__isLoggedIn || false;
+    if (!isLoggedIn) {
+        openLoginModal();
+        return;
+    }
+    var modal = document.getElementById('editRequestModal');
+    if (modal) {
+        // 화장실 정보 세팅
+        document.getElementById('editRequestToiletName').textContent = currentDetailToilet.name;
+        document.getElementById('editRequestToiletId').value = currentDetailToilet.id;
+        document.getElementById('editRequestCategory').value = '';
+        document.getElementById('editRequestContent').value = '';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeEditRequestModal() {
+    var modal = document.getElementById('editRequestModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+function submitEditRequest() {
+    var toiletId = document.getElementById('editRequestToiletId').value;
+    var category = document.getElementById('editRequestCategory').value;
+    var contentText = document.getElementById('editRequestContent').value.trim();
+
+    if (!category) {
+        showToast('カテゴリを選択してください。');
+        return;
+    }
+    if (!contentText) {
+        showToast('修正内容を入力してください。');
+        return;
+    }
+
+    fetch('/api/toilets/' + toiletId + '/edit-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            category: category,
+            content: contentText
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            showToast('修正提案を送信しました。ありがとうございます！');
+            closeEditRequestModal();
+        } else {
+            showToast('送信に失敗しました: ' + (res.message || ''));
+        }
+    })
+    .catch(function(err) {
+        console.error('Edit request error:', err);
+        showToast('送信中にエラーが発生しました。');
+    });
+}
+
+// ========== 리뷰 신고 ==========
+function reportReview(reviewId) {
+    var isLoggedIn = window.__isLoggedIn || false;
+    if (!isLoggedIn) {
+        openLoginModal();
+        return;
+    }
+
+    if (!confirm('このレビューを通報しますか？')) return;
+
+    fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            targetType: 'REVIEW',
+            targetId: reviewId,
+            reason: '不適切なレビュー'
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            showToast('通報が完了しました。');
+        } else {
+            showToast(res.message || '通報に失敗しました。');
+        }
+    })
+    .catch(function(err) {
+        console.error('Report error:', err);
+        showToast('通報中にエラーが発生しました。');
+    });
 }
 
 // ========== 별점 생성 ==========
@@ -528,6 +826,11 @@ function renderReviewCard(review) {
         '</div>' +
         (review.content ? '<div class="review-content">' + escapeHtml(review.content) + '</div>' : '') +
         imagesHtml +
+        '<div class="review-card-footer">' +
+            '<button class="review-report-btn" onclick="reportReview(' + review.id + ')" title="通報">' +
+                '<i class="fas fa-flag"></i> 通報' +
+            '</button>' +
+        '</div>' +
     '</div>';
 }
 
@@ -582,6 +885,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeLoginModal();
         closeLightbox();
+        closeEditRequestModal();
     }
 });
 

@@ -1568,3 +1568,394 @@ body {
     color: #999;
     margin-top: 4px;
 }
+
+/* ============================================
+   Detail Tabs (개요/정보/리뷰)
+   ============================================ */
+.detail-tabs {
+    display: flex;
+    border-bottom: 2px solid #F0F0F0;
+    margin: 16px 0 0;
+    gap: 0;
+}
+
+.detail-tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    transition: all 0.2s;
+}
+
+.detail-tab:hover {
+    color: #00C896;
+}
+
+.detail-tab.active {
+    color: #00C896;
+    border-bottom-color: #00C896;
+}
+
+.detail-tab-content {
+    display: block;
+    padding-top: 16px;
+}
+
+/* ============================================
+   Overview Tab - Action Buttons
+   ============================================ */
+.detail-action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.detail-action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: #F8F8F8;
+    border: 1px solid #E8E8E8;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    text-decoration: none;
+    color: #333;
+}
+
+.detail-action-btn:hover {
+    border-color: #00C896;
+    background: #E8F9F5;
+    color: #00C896;
+}
+
+.detail-action-btn i {
+    font-size: 18px;
+    color: #00C896;
+}
+
+.detail-action-btn span {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ============================================
+   Info Tab - Blur for Non-Members
+   ============================================ */
+.blur-wrapper {
+    position: relative;
+}
+
+.blur-content {
+    filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.blur-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.6);
+    z-index: 2;
+    border-radius: 8px;
+}
+
+.blur-overlay i {
+    font-size: 24px;
+    color: #00C896;
+    margin-bottom: 8px;
+}
+
+.blur-overlay p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.blur-overlay button {
+    padding: 8px 20px;
+    background: #00C896;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    transition: all 0.2s;
+}
+
+.blur-overlay button:hover {
+    background: #00B385;
+}
+
+/* ============================================
+   Review Tab - Sort & Report
+   ============================================ */
+.review-tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.review-sort-select {
+    padding: 6px 10px;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    color: #333;
+    background: white;
+    cursor: pointer;
+}
+
+.review-sort-select:focus {
+    outline: none;
+    border-color: #00C896;
+}
+
+.review-report-btn {
+    background: none;
+    border: none;
+    color: #CCC;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
+
+.review-report-btn:hover {
+    color: #E53E3E;
+}
+
+.review-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+/* ============================================
+   Edit Request Modal
+   ============================================ */
+.edit-request-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-request-modal.show {
+    display: flex;
+}
+
+.edit-request-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: editModalIn 0.25s ease;
+}
+
+@keyframes editModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.edit-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.edit-modal-close:hover {
+    color: #333;
+}
+
+.edit-modal-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #00C896;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+
+.edit-modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 4px;
+}
+
+.edit-modal-subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 20px;
+}
+
+.edit-category-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.edit-cat-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #E0E0E0;
+    background: white;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
+
+.edit-cat-btn:hover {
+    border-color: #00C896;
+    color: #00C896;
+}
+
+.edit-cat-btn.selected {
+    background: #00C896;
+    border-color: #00C896;
+    color: white;
+}
+
+.edit-current-info {
+    background: #F5F5F5;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.edit-current-label {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.edit-current-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A1A1A;
+}
+
+.edit-current-address {
+    font-size: 12px;
+    color: #888;
+}
+
+.edit-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #E0E0E0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    color: #333;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.edit-textarea:focus {
+    outline: none;
+    border-color: #00C896;
+}
+
+.edit-textarea::placeholder {
+    color: #CCC;
+}
+
+.edit-char-count {
+    text-align: right;
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+.edit-submit-btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: #00C896;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.edit-submit-btn:hover {
+    background: #00B385;
+    box-shadow: 0 4px 15px rgba(0, 200, 150, 0.3);
+}
+
+.edit-form-group {
+    margin-bottom: 12px;
+}
+
+.edit-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.edit-form-label .required {
+    color: #E53E3E;
+}
