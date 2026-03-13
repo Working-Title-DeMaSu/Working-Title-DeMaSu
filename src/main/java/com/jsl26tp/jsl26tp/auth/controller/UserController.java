@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.jsl26tp.jsl26tp.common.BusinessException;
 
 @Controller
 @RequestMapping("/mypage")
@@ -32,30 +34,41 @@ public class UserController {
         return "mypage/index"; // templates/mypage/index.html
     }
 
-    // 2. 프로필 수정 폼 (GET /mypage/edit)
-    @GetMapping("/edit")
-    public String editForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User user = userService.findByUsername(userDetails.getUsername());
-        model.addAttribute("user", user);
-        return "mypage/edit";
-    }
-
-    // 3. 프로필 수정 처리 (POST /mypage/edit)
+    // 2. 프로필 수정 처리 (POST /mypage/edit)
     @PostMapping("/edit")
-    public String updateProfile(@AuthenticationPrincipal UserDetails userDetails, User updateData) {
+    public String updateProfile(@AuthenticationPrincipal UserDetails userDetails,
+                                User updateData,
+                                @RequestParam(value = "iconFile", required = false) MultipartFile profileImage,
+                                Model model) {
         User user = userService.findByUsername(userDetails.getUsername());
         updateData.setId(user.getId());
-        userService.updateUser(updateData);
+
+        // 이미지 업로드 처리
+        String imageUrl = userService.saveProfileImage(profileImage);
+        if (imageUrl != null) {
+            updateData.setIconUrl(imageUrl);
+        } else {
+            updateData.setIconUrl(user.getIconUrl());
+        }
+
+        try {
+            userService.updateUser(updateData);
+        } catch (BusinessException e) {
+            model.addAttribute("user", updateData);
+            model.addAttribute("errorMessage", e.getErrorCode().getMessage());
+            return "mypage/edit"; // 에러 시 폼으로 다시 돌아감
+        }
+
         return "redirect:/mypage";
     }
 
-    // 4. 비밀번호 변경 폼 (GET /mypage/password)
+    // 3. 비밀번호 변경 폼 (GET /mypage/password)
     @GetMapping("/password")
     public String passwordForm() {
         return "mypage/password";
     }
 
-    // 5. 비밀번호 변경 처리 (POST /mypage/password)
+    // 4. 비밀번호 변경 처리 (POST /mypage/password)
     @PostMapping("/password")
     @ResponseBody
     public ApiResponse<Void> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
@@ -66,7 +79,7 @@ public class UserController {
         return ApiResponse.ok(null);
     }
 
-    // 6. 최근 본 화장실 (GET /mypage/recent)
+    // 5. 최근 본 화장실 (GET /mypage/recent)
     @GetMapping("/recent")
     public String recent(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         // 1. 현재 로그인한 유저 정보 가져오기
@@ -78,7 +91,7 @@ public class UserController {
         return "mypage/recent"; // templates/mypage/recent.html
     }
 
-    // 7. 내가 쓴 리뷰 (GET /mypage/reviews)
+    // 6. 내가 쓴 리뷰 (GET /mypage/reviews)
     @GetMapping("/reviews")
     public String myReviews(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         User user = userService.findByUsername(userDetails.getUsername());
@@ -86,7 +99,7 @@ public class UserController {
         return "mypage/reviews";
     }
 
-    // 8. 내 문의 내역 (GET /mypage/inquiries)
+    // 7. 내 문의 내역 (GET /mypage/inquiries)
     @GetMapping("/inquiries")
     public String myInquiries(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         User user = userService.findByUsername(userDetails.getUsername());

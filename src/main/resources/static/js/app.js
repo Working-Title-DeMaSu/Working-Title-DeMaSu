@@ -17,6 +17,7 @@ var currentPage = 1;         // current page for pagination
 var ITEMS_PER_PAGE = 4;      // items per page
 var allToilets = [];         // store all toilets for pagination
 var isDetailView = false;    // 상세보기 모드 여부
+var sharedToiletId = new URLSearchParams(window.location.search).get('toiletId'); // 공유 링크용
 var currentDetailToilet = null;  // 현재 상세보기 중인 화장실
 var currentDetailTags = [];      // 현재 상세보기 태그
 var currentDetailReviews = [];   // 현재 상세보기 리뷰
@@ -41,21 +42,33 @@ function initMap() {
                 currentLat = position.coords.latitude;
                 currentLng = position.coords.longitude;
                 var locPosition = new naver.maps.LatLng(currentLat, currentLng);
-                map.setCenter(locPosition);
 
                 // 내 위치 마커 표시
                 showMyLocationMarker(currentLat, currentLng);
 
-                // 주변 화장실 로딩
-                loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+                if (sharedToiletId) {
+                    // 공유 링크: 해당 화장실로 이동 + 상세보기
+                    openSharedToilet(sharedToiletId);
+                } else {
+                    map.setCenter(locPosition);
+                    loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+                }
             },
             function(error) {
                 console.log('位置情報の取得に失敗:', error);
-                loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+                if (sharedToiletId) {
+                    openSharedToilet(sharedToiletId);
+                } else {
+                    loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+                }
             }
         );
     } else {
-        loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+        if (sharedToiletId) {
+            openSharedToilet(sharedToiletId);
+        } else {
+            loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+        }
     }
 
     // 지도 이동 완료 시 화장실 다시 로딩 (상세보기 중엔 무시)
@@ -71,6 +84,23 @@ function initMap() {
             loadFilteredToilets(currentLat, currentLng, radius, currentFilter);
         }
     });
+}
+
+// ========== 공유 링크로 화장실 상세보기 열기 ==========
+function openSharedToilet(toiletId) {
+    fetch('/api/toilets/' + toiletId)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.success && res.data) {
+                var toilet = res.data;
+                map.setCenter(new naver.maps.LatLng(toilet.latitude, toilet.longitude));
+                map.setZoom(17);
+                viewToiletDetail(toiletId);
+            }
+        })
+        .catch(function() {
+            loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
+        });
 }
 
 // ========== 내 위치 마커 ==========
@@ -473,7 +503,7 @@ function renderOverviewTab(toilet) {
 
     var html =
         '<div class="detail-action-buttons">' +
-            '<button class="detail-action-btn" onclick="openNaverDirections(' + toilet.latitude + ',' + toilet.longitude + ')">' +
+            '<button class="detail-action-btn" onclick="openNaverDirections(' + toilet.latitude + ',' + toilet.longitude + ',\'' + (toilet.name || '').replace(/'/g, "\\'") + '\')">' +
                 '<i class="fas fa-directions"></i>' +
                 '<span>経路案内</span>' +
             '</button>' +
@@ -644,9 +674,33 @@ function sortReviews(sortType) {
 }
 
 // ========== 네이버 지도 길찾기 ==========
-function openNaverDirections(lat, lng) {
-    var url = 'https://map.naver.com/v5/directions/-/' + lng + ',' + lat + ',,/transit';
-    window.open(url, '_blank');
+function toEpsg3857(lat, lng) {
+    var x = lng * 20037508.34 / 180;
+    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180;
+    return { x: x, y: y };
+}
+
+function openNaverDirections(lat, lng, name) {
+    var dest = toEpsg3857(lat, lng);
+    var encodedName = encodeURIComponent(name || '目的地');
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            var start = toEpsg3857(pos.coords.latitude, pos.coords.longitude);
+            var url = 'https://map.naver.com/p/directions/' +
+                start.x + ',' + start.y + ',' + encodeURIComponent('現在地') + ',,' +
+                '/' + dest.x + ',' + dest.y + ',' + encodedName + ',,' +
+                '/-/transit';
+            window.open(url, '_blank');
+        }, function() {
+            // 위치 권한 거부 시 출발지 없이
+            var url = 'https://map.naver.com/p/directions/-/' + dest.x + ',' + dest.y + ',' + encodedName + ',,' + '/-/transit';
+            window.open(url, '_blank');
+        }, { timeout: 5000 });
+    } else {
+        var url = 'https://map.naver.com/p/directions/-/' + dest.x + ',' + dest.y + ',' + encodedName + ',,' + '/-/transit';
+        window.open(url, '_blank');
+    }
 }
 
 // ========== 화장실 공유 (클립보드 복사) ==========

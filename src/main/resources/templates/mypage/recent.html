@@ -204,7 +204,6 @@
                     <div class="toilet-name" th:text="${item.toiletName}">トイレ名</div>
                     <div class="toilet-address" th:text="${item.address}">住所</div>
                     <div class="toilet-meta">
-                        <span th:if="${item.avgScore != null}">⭐ <span th:text="${#numbers.formatDecimal(item.avgScore, 1, 1)}">0.0</span></span>
                     </div>
                 </div>
                 <div class="toilet-right">

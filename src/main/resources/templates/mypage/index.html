@@ -1,235 +1,158 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マイページ - デマス</title>
+    <title>マイページ - トイレマップ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/footer.css">
 </head>
-<body>
+<body class="mypage">
 
-<div class="page-wrapper">
-
-    <!-- 뒤로가기 -->
-    <a href="/" class="back-link">
-        <i class="fas fa-arrow-left"></i> マップに戻る
-    </a>
-
-    <!-- 프로필 카드 -->
-    <div class="profile-card">
-        <div class="avatar-wrapper">
-            <!-- 이미지가 있으면 표시, 없거나 로드 실패 시 기본 SVG 아바타 표시 -->
-            <img class="avatar-img"
-                 th:if="${user.iconUrl != null and !#strings.isEmpty(user.iconUrl)}"
-                 th:src="${user.iconUrl}"
-                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                 alt="プロフィール画像">
-            <div class="avatar-default"
-                 th:style="${user.iconUrl == null or #strings.isEmpty(user.iconUrl)} ? 'display:flex' : 'display:none'">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
+<header class="mypage-header">
+    <div class="header-inner">
+        <a th:href="@{/}" class="logo">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>トイレマップ</span>
+        </a>
+        <div class="user-info">
+            <div class="user-menu-wrap" onclick="toggleUserMenu()">
+                <div class="mypage-user-icon">
+                    <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール">
+                    <i th:if="${user.iconUrl == null}" class="fa-solid fa-user"></i>
+                </div>
+                <span class="user-nickname" th:text="${user.nickname}">ユーザー</span>
+                <i class="fa-solid fa-chevron-down"></i>
             </div>
-            <div class="camera-btn"><i class="fas fa-camera"></i></div>
-        </div>
-        <div class="profile-right">
-            <h2 class="profile-name" th:text="${user.nickname}">ニックネーム</h2>
-            <p class="profile-email" th:text="${user.email}">email@example.com</p>
-            <div class="profile-stats">
-                <div class="stat-item">
-                    <span class="stat-num">0</span>
-                    <span class="stat-label">訪問済み</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-num">0</span>
-                    <span class="stat-label">レビュー</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-num">0</span>
-                    <span class="stat-label">いいね</span>
-                </div>
+            <div class="mypage-dropdown" id="mypageDropdown">
+                <a th:href="@{/mypage}"><i class="fa-solid fa-user"></i> マイページ</a>
+                <a th:href="@{/mypage/edit}"><i class="fa-solid fa-pen"></i> プロフィール編集</a>
+                <a th:href="@{/mypage/password}"><i class="fa-solid fa-lock"></i> パスワード変更</a>
+                <hr>
+                <a th:href="@{/logout}"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</a>
             </div>
         </div>
     </div>
+</header>
 
-    <!-- 탭 카드 -->
-    <div class="tab-card">
+<main class="mypage-main">
+    <div class="mypage-container">
 
-        <!-- 탭 네비게이션 -->
-        <div class="tab-nav">
-            <button class="tab-btn active" data-tab="edit">
-                <i class="fas fa-user-pen"></i> プロフィール編集
-            </button>
-            <button class="tab-btn" data-tab="recent">
-                <i class="fas fa-clock-rotate-left"></i> 最近のトイレ
-            </button>
-            <button class="tab-btn" data-tab="reviews">
-                <i class="fas fa-star"></i> 私のレビュー
-            </button>
-        </div>
+        <nav class="mp-breadcrumb">
+            <a th:href="@{/}"><i class="fa-solid fa-house"></i> ホーム</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>マイページ</span>
+        </nav>
 
-        <!-- 탭: 프로필 편집 -->
-        <div class="tab-content active" id="tab-edit">
-            <form th:action="@{/mypage/edit}" method="post" id="profileForm">
-
-                <!-- lineAgreed hidden (체크박스 미선택 시 0 전송) -->
-                <input type="hidden" name="lineAgreed" id="lineAgreedHidden" value="0">
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ニックネーム</label>
-                        <input type="text" name="nickname"
-                               th:value="${user.nickname}" placeholder="ニックネーム">
-                    </div>
-                    <div class="form-group">
-                        <label>メールアドレス</label>
-                        <input type="email" name="email"
-                               th:value="${user.email}" placeholder="email@example.com">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>電話番号</label>
-                        <input type="tel" name="phone"
-                               th:value="${user.phone}" placeholder="080-1234-5678">
-                    </div>
-                    <div class="form-group">
-                        <label>性別</label>
-                        <select name="gender">
-                            <option value="MALE"   th:selected="${user.gender == 'MALE'}">男性</option>
-                            <option value="FEMALE" th:selected="${user.gender == 'FEMALE'}">女性</option>
-                            <option value="OTHER"  th:selected="${user.gender == 'OTHER'}">その他</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>生年月日</label>
-                        <input type="date" name="birthdate" th:value="${user.birthdate}">
-                    </div>
-                </div>
-
-                <!-- LINE 토글 -->
-                <div class="line-toggle-row">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="lineToggle"
-                               th:checked="${user.lineAgreed == 1}"
-                               onchange="document.getElementById('lineAgreedHidden').value = this.checked ? '1' : '0'">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <div class="toggle-label">
-                        <span>LINE通知チャットボット</span>
-                        <small>近くのトイレ情報をLINEで受け取る</small>
-                    </div>
-                </div>
-
-                <!-- 비밀번호 변경 -->
-                <div class="section-divider"></div>
-                <h3 class="section-title">パスワード変更</h3>
-
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label>現在のパスワード</label>
-                    <input type="password" id="currentPassword" placeholder="••••••••">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>新しいパスワード</label>
-                        <input type="password" id="newPassword" placeholder="8文字以上">
-                    </div>
-                    <div class="form-group">
-                        <label>パスワード確認</label>
-                        <input type="password" id="confirmPassword" placeholder="再入力">
-                    </div>
-                </div>
-
-                <div class="btn-row">
-                    <button type="submit" class="btn-save">変更を保存</button>
-                    <button type="button" class="btn-delete" onclick="confirmDelete()">アカウント削除</button>
-                </div>
-
-            </form>
-        </div>
-
-        <!-- 탭: 최근 본 화장실 -->
-        <div class="tab-content" id="tab-recent">
-            <div class="empty-state">
-                <i class="fas fa-toilet"></i>
-                <p>最近見たトイレはありません</p>
+        <section class="mp-profile-card">
+            <div class="mp-profile-avatar">
+                <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール画像">
+                <i th:if="${user.iconUrl == null}" class="fa-solid fa-user"></i>
             </div>
-        </div>
-
-        <!-- 탭: 내 리뷰 -->
-        <div class="tab-content" id="tab-reviews">
-            <div class="empty-state">
-                <i class="fas fa-star"></i>
-                <p>まだレビューがありません</p>
+            <div class="mp-profile-info">
+                <h2 class="mp-profile-nickname" th:text="${user.nickname}">ニックネーム</h2>
+                <p class="mp-profile-email" th:text="${user.email}">email@example.com</p>
+                <p class="mp-profile-join">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span th:text="'登録日: ' + ${#temporals.format(user.createdAt, 'yyyy.MM.dd')}">登録日: 2026.01.01</span>
+                </p>
             </div>
+            <a th:href="@{/mypage/edit}" class="mp-btn-edit">
+                <i class="fa-solid fa-pen"></i> プロフィール編集
+            </a>
+        </section>
+
+        <section class="mp-menu-grid">
+            <a th:href="@{/mypage/recent}" class="mp-menu-card">
+                <div class="mp-menu-card-icon" style="background:#E8FAF8;color:#2ECDC0;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div class="mp-menu-card-text">
+                    <p class="mp-menu-card-title">最近見たトイレ</p>
+                    <p class="mp-menu-card-desc">閲覧履歴を確認する</p>
+                </div>
+                <i class="fa-solid fa-chevron-right mp-menu-card-arrow"></i>
+            </a>
+            <a th:href="@{/mypage/reviews}" class="mp-menu-card">
+                <div class="mp-menu-card-icon" style="background:#FFF3E0;color:#FF9800;">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="mp-menu-card-text">
+                    <p class="mp-menu-card-title">投稿したレビュー</p>
+                    <p class="mp-menu-card-desc">自分のレビューを管理する</p>
+                </div>
+                <i class="fa-solid fa-chevron-right mp-menu-card-arrow"></i>
+            </a>
+            <a th:href="@{/mypage/inquiries}" class="mp-menu-card">
+                <div class="mp-menu-card-icon" style="background:#F3E5F5;color:#9C27B0;">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="mp-menu-card-text">
+                    <p class="mp-menu-card-title">お問い合わせ履歴</p>
+                    <p class="mp-menu-card-desc">問い合わせ内容を確認する</p>
+                </div>
+                <i class="fa-solid fa-chevron-right mp-menu-card-arrow"></i>
+            </a>
+            <a th:href="@{/mypage/password}" class="mp-menu-card">
+                <div class="mp-menu-card-icon" style="background:#E3F2FD;color:#2196F3;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="mp-menu-card-text">
+                    <p class="mp-menu-card-title">パスワード変更</p>
+                    <p class="mp-menu-card-desc">セキュリティを更新する</p>
+                </div>
+                <i class="fa-solid fa-chevron-right mp-menu-card-arrow"></i>
+            </a>
+        </section>
+
+        <section class="mp-account-section">
+            <h3 class="mp-section-title"><i class="fa-solid fa-circle-info"></i> アカウント情報</h3>
+            <div class="mp-account-info-list">
+                <div class="mp-account-info-row">
+                    <span class="mp-info-label"><i class="fa-solid fa-user"></i> ユーザーID</span>
+                    <span class="mp-info-value" th:text="${user.username}">username</span>
+                </div>
+                <div class="mp-account-info-row">
+                    <span class="mp-info-label"><i class="fa-solid fa-phone"></i> 電話番号</span>
+                    <span class="mp-info-value" th:text="${user.phone != null ? user.phone : '未登録'}">未登録</span>
+                </div>
+                <div class="mp-account-info-row">
+                    <span class="mp-info-label"><i class="fa-solid fa-venus-mars"></i> 性別</span>
+                    <span class="mp-info-value"
+                          th:text="${user.gender == 'M' ? '男性' : (user.gender == 'F' ? '女性' : '未登録')}">未登録</span>
+                </div>
+                <div class="mp-account-info-row">
+                    <span class="mp-info-label"><i class="fa-solid fa-cake-candles"></i> 生年月日</span>
+                    <span class="mp-info-value"
+                          th:text="${user.birthdate != null ? #temporals.format(user.birthdate, 'yyyy.MM.dd') : '未登録'}">未登録</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="mp-logout-area">
+            <a th:href="@{/logout}" class="mp-btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> ログアウト
+            </a>
         </div>
 
     </div>
-</div>
+</main>
 
-<!-- Footer -->
-<footer th:replace="~{fragments/footer :: footer}"></footer>
-
+<script th:src="@{/js/app.js}"></script>
 <script>
-    /* ── 탭 전환 ── */
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
-        });
-    });
-
-    /* ── 폼 제출: 비밀번호 변경 처리 ── */
-    document.getElementById('profileForm').addEventListener('submit', function (e) {
-        const newPw      = document.getElementById('newPassword').value;
-        const confirmPw  = document.getElementById('confirmPassword').value;
-
-        if (newPw || confirmPw) {
-            if (newPw.length < 8) {
-                e.preventDefault();
-                alert('パスワードは8文字以上で入力してください。');
-                return;
-            }
-            if (newPw !== confirmPw) {
-                e.preventDefault();
-                alert('パスワードが一致しません。');
-                return;
-            }
-            /* 비밀번호 API 먼저 호출 후 프로필 폼 제출 */
-            e.preventDefault();
-            fetch('/mypage/password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'newPassword=' + encodeURIComponent(newPw)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    this.submit();
-                } else {
-                    alert('パスワードの変更に失敗しました。');
-                }
-            });
-        }
-    });
-
-    /* ── 계정 삭제 확인 ── */
-    function confirmDelete() {
-        if (confirm('本当にアカウントを削除しますか？この操作は取り消せません。')) {
-            alert('アカウント削除機能は準備中です。');
-        }
+    function toggleUserMenu() {
+        const dropdown = document.getElementById('mypageDropdown');
+        dropdown.classList.toggle('active');
     }
+    document.addEventListener('click', function(e) {
+        const wrap = document.querySelector('.user-menu-wrap');
+        const dropdown = document.getElementById('mypageDropdown');
+        if (wrap && !wrap.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
 </script>
-
 </body>
 </html>

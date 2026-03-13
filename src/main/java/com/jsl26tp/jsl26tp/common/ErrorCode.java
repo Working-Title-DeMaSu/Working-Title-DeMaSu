@@ -37,6 +37,9 @@ public enum ErrorCode {
     // ===== 문의 (INQUIRY) =====
     INQUIRY_NOT_FOUND     (HttpStatus.NOT_FOUND,     "お問い合わせが見つかりません。"),
 
+    // ===== 파일 (FILE) =====
+    FILE_UPLOAD_FAILED    (HttpStatus.INTERNAL_SERVER_ERROR, "ファイルのアップロードに失敗しました。"),
+
     // ===== 공통 (COMMON) =====
     BAD_REQUEST           (HttpStatus.BAD_REQUEST,   "リクエストが正しくありません。"),
     INTERNAL_ERROR        (HttpStatus.INTERNAL_SERVER_ERROR, "サーバーエラーが発生しました。");

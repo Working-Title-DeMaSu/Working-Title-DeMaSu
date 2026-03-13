@@ -51,36 +51,34 @@
       <h1><i class="fa-solid fa-pen-to-square"></i> プロフィール編集</h1>
     </div>
 
-    <div th:if="${error}" class="mp-alert mp-alert-error">
+    <div th:if="${errorMessage}" class="mp-alert mp-alert-error">
       <i class="fa-solid fa-circle-exclamation"></i>
-      <span th:text="${error}"></span>
-    </div>
-    <div th:if="${success}" class="mp-alert mp-alert-success">
-      <i class="fa-solid fa-circle-check"></i>
-      <span th:text="${success}"></span>
+      <span th:text="${errorMessage}"></span>
     </div>
 
-    <div class="mp-edit-layout">
+    <!-- form이 전체 레이아웃을 감싸도록 수정 (파일 input 포함) -->
+    <form th:action="@{/mypage/edit}" method="post" enctype="multipart/form-data">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-      <!-- 아이콘 섹션 -->
-      <div class="mp-edit-icon-section">
-        <div class="mp-icon-preview" id="iconPreviewWrap">
-          <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール画像" id="iconPreviewImg">
-          <i th:if="${user.iconUrl == null}" class="fa-solid fa-user" id="iconPreviewIcon"></i>
+      <div class="mp-edit-layout">
+
+        <!-- 아이콘 섹션 (form 안으로 이동) -->
+        <div class="mp-edit-icon-section">
+          <div class="mp-icon-preview" id="iconPreviewWrap">
+            <img th:if="${user.iconUrl != null}" th:src="${user.iconUrl}" alt="プロフィール画像">
+            <i th:if="${user.iconUrl == null}" class="fa-solid fa-user"></i>
+          </div>
+          <label class="mp-icon-upload-btn" for="iconFile">
+            <i class="fa-solid fa-camera"></i> 画像を変更
+          </label>
+          <!-- name="iconFile" → UserController의 @RequestParam("iconFile")과 일치 -->
+          <input type="file" id="iconFile" name="iconFile" accept="image/*"
+                 style="display:none" onchange="previewIcon(this)">
+          <p class="mp-icon-hint">JPG, PNG (最大5MB)</p>
         </div>
-        <label class="mp-icon-upload-btn" for="iconFile">
-          <i class="fa-solid fa-camera"></i> 画像を変更
-        </label>
-        <input type="file" id="iconFile" name="iconFile" accept="image/*"
-               style="display:none" onchange="previewIcon(this)">
-        <p class="mp-icon-hint">JPG, PNG (最大5MB)</p>
-      </div>
 
-      <!-- 폼 섹션 -->
-      <div class="mp-edit-form-section">
-        <form th:action="@{/mypage/edit}" method="post" enctype="multipart/form-data">
-          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-          <input type="hidden" name="id" th:value="${user.id}">
+        <!-- 폼 섹션 -->
+        <div class="mp-edit-form-section">
 
           <div class="mp-form-group">
             <label for="nickname">
@@ -141,9 +139,10 @@
               <i class="fa-solid fa-floppy-disk"></i> 保存する
             </button>
           </div>
-        </form>
+
+        </div>
       </div>
-    </div>
+    </form>
 
   </div>
 </main>
