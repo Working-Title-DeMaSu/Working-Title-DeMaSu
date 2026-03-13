@@ -7,6 +7,7 @@
 var map;              // 네이버맵 객체
 var markers = [];     // 마커 배열
 var infoWindows = []; // 인포윈도우 배열
+var highlightedMarker = null; // 상세보기 중 강조된 마커
 var currentInfoWindow = null; // 현재 열려있는 인포윈도우
 var currentLat = 37.5665;  // 현재 위도 (기본값: 서울)
 var currentLng = 126.9780; // 현재 경도
@@ -88,6 +89,7 @@ function initMap() {
 
 // ========== 공유 링크로 화장실 상세보기 열기 ==========
 function openSharedToilet(toiletId) {
+    isDetailView = true;
     fetch('/api/toilets/' + toiletId)
         .then(function(r) { return r.json(); })
         .then(function(res) {
@@ -132,6 +134,27 @@ function clearMarkers() {
     currentInfoWindow = null;
 }
 
+var MARKER_ICON_NORMAL = '<div style="width:28px;height:28px;background:#00C896;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);"><i class="fas fa-restroom" style="color:#fff;font-size:11px;"></i></div>';
+var MARKER_ICON_LARGE = '<div style="width:44px;height:44px;background:#00C896;border-radius:50%;border:4px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,200,150,0.5);"><i class="fas fa-restroom" style="color:#fff;font-size:18px;"></i></div>';
+
+function highlightMarker(toiletId) {
+    unhighlightMarker();
+    for (var i = 0; i < markers.length; i++) {
+        if (markers[i]._toiletId === toiletId) {
+            highlightedMarker = markers[i];
+            markers[i].setIcon({ content: MARKER_ICON_LARGE, anchor: new naver.maps.Point(22, 22) });
+            break;
+        }
+    }
+}
+
+function unhighlightMarker() {
+    if (highlightedMarker) {
+        highlightedMarker.setIcon({ content: MARKER_ICON_NORMAL, anchor: new naver.maps.Point(14, 14) });
+        highlightedMarker = null;
+    }
+}
+
 // ========== 마커 생성 ==========
 function addMarker(toilet) {
     if (!toilet.latitude || !toilet.longitude) return;
@@ -140,7 +163,7 @@ function addMarker(toilet) {
         position: new naver.maps.LatLng(toilet.latitude, toilet.longitude),
         map: map,
         icon: {
-            content: '<div style="width:28px;height:28px;background:#00C896;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);"><i class="fas fa-restroom" style="color:#fff;font-size:11px;"></i></div>',
+            content: MARKER_ICON_NORMAL,
             anchor: new naver.maps.Point(14, 14)
         }
     });
@@ -192,6 +215,7 @@ function addMarker(toilet) {
         currentInfoWindow = infoWindow;
     });
 
+    marker._toiletId = toilet.id;
     markers.push(marker);
     infoWindows.push(infoWindow);
 }
@@ -415,6 +439,13 @@ function showDetailSidebar(toilet, tags, reviews) {
     currentDetailToilet = toilet;
     currentDetailTags = tags;
     currentDetailReviews = reviews;
+
+    // 검색바, 필터 숨기기
+    var searchEl = document.querySelector('.sidebar-search');
+    if (searchEl) searchEl.style.display = 'none';
+
+    // 해당 마커 강조
+    highlightMarker(toilet.id);
 
     // --- 태그 ---
     var tagsHtml = '';
@@ -735,12 +766,24 @@ function openEditRequestModal() {
     if (modal) {
         // 화장실 정보 세팅
         document.getElementById('editRequestToiletName').textContent = currentDetailToilet.name;
+        document.getElementById('editRequestToiletAddress').textContent = currentDetailToilet.address || '';
         document.getElementById('editRequestToiletId').value = currentDetailToilet.id;
         document.getElementById('editRequestCategory').value = '';
         document.getElementById('editRequestContent').value = '';
+        document.getElementById('editCharCount').textContent = '0';
+        // 카테고리 버튼 초기화
+        var catBtns = document.querySelectorAll('.edit-cat-btn');
+        for (var i = 0; i < catBtns.length; i++) catBtns[i].classList.remove('selected');
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
+}
+
+function selectEditCategory(btn) {
+    var catBtns = document.querySelectorAll('.edit-cat-btn');
+    for (var i = 0; i < catBtns.length; i++) catBtns[i].classList.remove('selected');
+    btn.classList.add('selected');
+    document.getElementById('editRequestCategory').value = btn.getAttribute('data-value');
 }
 
 function closeEditRequestModal() {
@@ -916,6 +959,11 @@ function closeLightbox(event) {
 // ========== 리스트로 돌아가기 ==========
 function backToList() {
     isDetailView = false;
+    // 마커 원래대로
+    unhighlightMarker();
+    // 검색바, 필터 다시 보이기
+    var searchEl = document.querySelector('.sidebar-search');
+    if (searchEl) searchEl.style.display = '';
     if (currentFilter === 'all') {
         loadNearbyToilets(currentLat, currentLng, SEARCH_RADIUS);
     } else {
@@ -1111,6 +1159,14 @@ function showToast(message) {
 // ========== 페이지 로드 시 ==========
 document.addEventListener('DOMContentLoaded', function() {
     console.log('トイレマップ loaded!');
+
+    // 수정제안 글자수 카운트
+    var editTextarea = document.getElementById('editRequestContent');
+    if (editTextarea) {
+        editTextarea.addEventListener('input', function() {
+            document.getElementById('editCharCount').textContent = this.value.length;
+        });
+    }
 
     if (typeof naver !== 'undefined' && naver.maps) {
         console.log('Naver Maps SDK ready!');

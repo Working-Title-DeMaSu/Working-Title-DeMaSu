@@ -219,30 +219,57 @@
 <!-- 修正提案モーダル -->
 <div id="editRequestModal" class="edit-request-modal" style="display: none;">
     <div class="edit-request-content">
-        <button class="close-btn" onclick="closeEditRequestModal()">×</button>
-        <h2 class="edit-request-title">修正提案</h2>
-        <p class="edit-request-toilet-name" id="editRequestToiletName"></p>
+        <button class="edit-modal-close" onclick="closeEditRequestModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+
+        <div class="edit-modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        </div>
+        <div class="edit-modal-title">修正提案</div>
+        <div class="edit-modal-subtitle">情報に誤りがある場合はお知らせください</div>
+
         <input type="hidden" id="editRequestToiletId">
 
-        <div class="form-group">
-            <label>カテゴリ</label>
-            <select id="editRequestCategory" class="edit-request-select">
-                <option value="">選択してください</option>
-                <option value="LOCATION">位置情報</option>
-                <option value="FACILITY">施設情報</option>
-                <option value="HOURS">営業時間</option>
-                <option value="CLOSED">閉鎖・移転</option>
-                <option value="OTHER">その他</option>
-            </select>
+        <!-- 현재 화장실 정보 -->
+        <div class="edit-current-info">
+            <div class="edit-current-label">対象トイレ</div>
+            <div class="edit-current-name" id="editRequestToiletName"></div>
+            <div class="edit-current-address" id="editRequestToiletAddress"></div>
         </div>
 
-        <div class="form-group">
-            <label>修正内容</label>
-            <textarea id="editRequestContent" class="edit-request-textarea" rows="5" placeholder="修正が必要な内容を入力してください"></textarea>
+        <!-- 카테고리 선택 -->
+        <div class="edit-form-group">
+            <label class="edit-form-label">カテゴリ <span class="required" style="color:#E53E3E;">*</span></label>
+            <div class="edit-category-group" id="editCategoryGroup">
+                <button type="button" class="edit-cat-btn" data-value="LOCATION" onclick="selectEditCategory(this)">📍 位置情報</button>
+                <button type="button" class="edit-cat-btn" data-value="FACILITY" onclick="selectEditCategory(this)">🔧 施設情報</button>
+                <button type="button" class="edit-cat-btn" data-value="HOURS" onclick="selectEditCategory(this)">🕐 営業時間</button>
+                <button type="button" class="edit-cat-btn" data-value="CLOSED" onclick="selectEditCategory(this)">🚫 閉鎖・移転</button>
+                <button type="button" class="edit-cat-btn" data-value="OTHER" onclick="selectEditCategory(this)">💬 その他</button>
+            </div>
+            <input type="hidden" id="editRequestCategory" value="">
         </div>
 
-        <button class="edit-request-submit-btn" onclick="submitEditRequest()">
-            <i class="fas fa-paper-plane"></i> 送信
+        <!-- 수정 내용 -->
+        <div class="edit-form-group">
+            <label class="edit-form-label">修正内容 <span class="required" style="color:#E53E3E;">*</span></label>
+            <textarea id="editRequestContent" class="edit-textarea" placeholder="修正が必要な内容を具体的に入力してください" maxlength="500"></textarea>
+            <div class="edit-char-count"><span id="editCharCount">0</span>/500</div>
+        </div>
+
+        <button class="edit-submit-btn" onclick="submitEditRequest()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            送信する
         </button>
     </div>
 </div>
@@ -254,7 +281,7 @@
     window.__isLoggedIn = [[${#authorization.expression('isAuthenticated()')}]];
 </script>
 <!-- App JS -->
-<script th:src="@{/js/app.js(v=13)}"></script>
+<script th:src="@{/js/app.js(v=17)}"></script>
 <script>
     // /login 으로 리다이렉트된 경우 자동으로 로그인 모달 열기
     if (window.location.pathname === '/login') {
