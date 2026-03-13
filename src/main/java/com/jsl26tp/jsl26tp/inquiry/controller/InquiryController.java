@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * お問い合わせ Controller (ユーザー向け)
- *
- * 유저가 문의를 등록/조회/삭제하는 API
- * - 관리자 문의 처리(답변 등)는 AdminController에서 담당
- * - 모든 엔드포인트 로그인 필요 (SecurityConfig → anyRequest().authenticated())
+ * Inquiry Controller (User-facing)
+ * - User inquiry CRUD API
+ * - Admin answer handling is in AdminController
  */
 @RestController
 @RequestMapping("/api/inquiries")
@@ -24,13 +22,7 @@ public class InquiryController {
 
     private final InquiryService inquiryService;
 
-    /**
-     * 문의 등록
-     * POST /api/inquiries
-     *
-     * @param inquiry { title: "제목", content: "내용" }
-     * @param user    로그인 유저 (writerId 자동 세팅)
-     */
+    // Create inquiry - POST /api/inquiries
     @PostMapping
     public ApiResponse<Void> createInquiry(
             @RequestBody Inquiry inquiry,
@@ -41,10 +33,7 @@ public class InquiryController {
         return ApiResponse.ok();
     }
 
-    /**
-     * 내 문의 목록 조회
-     * GET /api/inquiries/my
-     */
+    // Get my inquiries - GET /api/inquiries/my
     @GetMapping("/my")
     public ApiResponse<List<Inquiry>> getMyInquiries(
             @AuthenticationPrincipal CustomUserDetails user) {
@@ -53,10 +42,7 @@ public class InquiryController {
         return ApiResponse.ok(inquiries);
     }
 
-    /**
-     * 문의 상세 조회
-     * GET /api/inquiries/{id}
-     */
+    // Get inquiry detail - GET /api/inquiries/{id}
     @GetMapping("/{id}")
     public ApiResponse<Inquiry> getInquiryDetail(@PathVariable Long id) {
 
@@ -64,10 +50,7 @@ public class InquiryController {
         return ApiResponse.ok(inquiry);
     }
 
-    /**
-     * 문의 삭제 (소프트 삭제, 본인만)
-     * DELETE /api/inquiries/{id}
-     */
+    // Delete inquiry (soft delete, owner only) - DELETE /api/inquiries/{id}
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteInquiry(
             @PathVariable Long id,

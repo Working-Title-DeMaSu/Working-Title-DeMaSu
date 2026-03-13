@@ -83,7 +83,7 @@
     </select>
 
     <!-- 새 화장실 등록 (사용자 제보) -->
-    <insert id="insertToilet" parameterType="Toilet">
+    <insert id="insertToilet" parameterType="Toilet" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO toilets (name, address, latitude, longitude, open_hours,
                              is_24hours, is_wheelchair, has_paper, has_soap,
                              has_sanitary, has_diaper, toilet_type, has_emergency,

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最近のトイレ - デマス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: #F5F5F5; color: #333; }
+        .header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1A1A1A;
+        }
+        .container {
+            max-width: 680px;
+            margin: 32px auto;
+            padding: 0 16px 48px;
+            flex: 1;
+            width: 100%;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A1A1A;
+        }
+        .section-count {
+            background: #00C896;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+        .toilet-list { display: flex; flex-direction: column; gap: 12px; }
+        .toilet-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: box-shadow 0.2s, transform 0.2s;
+            text-decoration: none;
+        }
+        .toilet-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .toilet-info { flex: 1; }
+        .toilet-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1A1A1A;
+            margin-bottom: 6px;
+        }
+        .toilet-address {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .toilet-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .toilet-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag {
+            background: #F0F0F0;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #555;
+        }
+        .toilet-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            margin-left: 16px;
+        }
+        .viewed-date {
+            font-size: 11px;
+            color: #bbb;
+            white-space: nowrap;
+        }
+        .detail-link {
+            font-size: 12px;
+            color: #00C896;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        /* 빈 상태 */
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 32px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .empty-icon {
+            color: #CCC;
+            margin-bottom: 16px;
+        }
+        .empty-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .empty-desc {
+            font-size: 13px;
+            color: #BBB;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .go-map-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #00C896;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        .go-map-btn:hover { background: #00B385; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <a href="/" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        マップに戻る
+    </a>
+    <span class="header-title">最近見たトイレ</span>
+</header>
+
+<div class="container">
+
+    <!-- 데이터 있는 경우 -->
+    <div th:if="${recentToilets != null and !recentToilets.isEmpty()}">
+        <div class="section-header">
+            <span class="section-title">最近見たトイレ</span>
+            <span class="section-count" th:text="${recentToilets.size()}">0</span>
+        </div>
+
+        <div class="toilet-list">
+            <a th:each="item : ${recentToilets}"
+               th:href="@{/toilet/{id}(id=${item.toiletId})}"
+               class="toilet-card">
+                <div class="toilet-info">
+                    <div class="toilet-name" th:text="${item.toiletName}">トイレ名</div>
+                    <div class="toilet-address" th:text="${item.address}">住所</div>
+                    <div class="toilet-meta">
+                        <span th:if="${item.avgScore != null}">⭐ <span th:text="${#numbers.formatDecimal(item.avgScore, 1, 1)}">0.0</span></span>
+                    </div>
+                </div>
+                <div class="toilet-right">
+                    <span class="viewed-date" th:text="${#temporals.format(item.viewedAt, 'MM/dd HH:mm')}">01/01</span>
+                    <span class="detail-link">詳細を見る →</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 빈 상태 -->
+    <div class="empty-state" th:if="${recentToilets == null or recentToilets.isEmpty()}">
+        <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+            </svg>
+        </div>
+        <div class="empty-title">まだ見たトイレがありません</div>
+        <div class="empty-desc">マップでトイレを探して<br>詳細情報を確認してみましょう！</div>
+        <a href="/" class="go-map-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            マップを見る
+        </a>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

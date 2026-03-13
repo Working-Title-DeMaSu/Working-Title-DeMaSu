@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お問い合わせ - デマス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: #F5F5F5; color: #333; }
+        .header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1A1A1A;
+        }
+        .container {
+            max-width: 680px;
+            margin: 32px auto;
+            padding: 0 16px 48px;
+            flex: 1;
+            width: 100%;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A1A1A;
+            margin-bottom: 8px;
+        }
+        .card-subtitle {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #E0E0E0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: border-color 0.2s;
+            resize: none;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00C896;
+        }
+        .form-group textarea { height: 140px; }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #00C896;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: background 0.2s;
+        }
+        .submit-btn:hover { background: #00B385; }
+        .success-msg {
+            background: #E8F5F1;
+            border: 1.5px solid #00C896;
+            color: #007A5E;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* 내 문의 내역 */
+        .inquiry-list { display: flex; flex-direction: column; gap: 12px; }
+        .inquiry-item {
+            border: 1.5px solid #E8E8E8;
+            border-radius: 12px;
+            padding: 16px;
+            transition: box-shadow 0.2s;
+        }
+        .inquiry-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .inquiry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .inquiry-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1A1A1A;
+            flex: 1;
+        }
+        .status-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        .status-waiting { background: #FFF3E0; color: #E65100; }
+        .status-answered { background: #E8F5F1; color: #007A5E; }
+        .inquiry-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .inquiry-answer {
+            background: #F8F8F8;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #555;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+        .inquiry-answer-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #00C896;
+            margin-bottom: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <a href="/" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        マップに戻る
+    </a>
+    <span class="header-title">お問い合わせ</span>
+</header>
+
+<div class="container">
+
+    <!-- 문의 작성 폼 -->
+    <div class="card">
+        <h2 class="card-title">お問い合わせを送る</h2>
+        <p class="card-subtitle">ご不明な点やご要望がございましたら、お気軽にお問い合わせください。<br>通常2〜3営業日以内にご回答いたします。</p>
+
+        <!-- 성공 메시지 -->
+        <div class="success-msg" th:if="${param.success}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            お問い合わせを受け付けました。回答までしばらくお待ちください。
+        </div>
+
+        <form action="/inquiry" method="post">
+            <div class="form-group">
+                <label>件名</label>
+                <input type="text" name="title" placeholder="お問い合わせの件名を入力してください" required>
+            </div>
+            <div class="form-group">
+                <label>内容</label>
+                <textarea name="content" placeholder="お問い合わせの内容を詳しくご記入ください" required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">送信する</button>
+        </form>
+    </div>
+
+    <!-- 내 문의 내역 -->
+    <div class="card">
+        <h2 class="card-title" style="margin-bottom:16px;">お問い合わせ履歴</h2>
+
+        <div class="inquiry-list" th:if="${inquiries != null and !inquiries.isEmpty()}">
+            <div class="inquiry-item" th:each="inquiry : ${inquiries}">
+                <div class="inquiry-header">
+                    <span class="inquiry-title" th:text="${inquiry.title}">タイトル</span>
+                    <span class="status-badge status-answered" th:if="${inquiry.status == 'ANSWERED'}">回答済み</span>
+                    <span class="status-badge status-waiting" th:if="${inquiry.status != 'ANSWERED'}">回答待ち</span>
+                </div>
+                <div class="inquiry-date" th:text="${#temporals.format(inquiry.createdAt, 'yyyy年MM月dd日')}">2026年01月01日</div>
+                <div class="inquiry-answer" th:if="${inquiry.answer != null}">
+                    <div class="inquiry-answer-label">運営からの回答</div>
+                    <span th:text="${inquiry.answer}">回答内容</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${inquiries == null or inquiries.isEmpty()}">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5" style="margin-bottom:12px;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <p>まだお問い合わせがありません</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

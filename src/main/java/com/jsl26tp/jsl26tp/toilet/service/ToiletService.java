@@ -94,6 +94,26 @@ public class ToiletService {
             toiletMapper.insertToilet(toilet);
     }
 
+    //새 화장실 등록 + 태그 한번에 (페이지 폼용)
+    public void insertToiletWithTags(Toilet toilet, Long userId, List<String> tagNames) {
+        toilet.setSource("USER");
+        toilet.setStatus("PENDING");
+        toilet.setByUserId(userId);
+        toiletMapper.insertToilet(toilet); // useGeneratedKeys로 toilet.id 자동 설정됨
+
+        // 태그 등록
+        if (tagNames != null) {
+            for (String tagName : tagNames) {
+                if (tagName != null && !tagName.isBlank()) {
+                    ToiletTag tag = new ToiletTag();
+                    tag.setToiletId(toilet.getId());
+                    tag.setTagName(tagName);
+                    toiletTagMapper.insertTag(tag);
+                }
+            }
+        }
+    }
+
     //정보 수정 제안
     public void submitEditRequest(Long toiletId, Long userId, String content) {
 

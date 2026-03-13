@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新しいトイレを追加 - デマス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #F0FAF7;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #00C896;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 24px 24px 0;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* 페이지 타이틀 */
+        .page-header {
+            padding: 12px 24px 24px;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1A1A1A;
+            margin-bottom: 6px;
+        }
+        .page-subtitle {
+            font-size: 13px;
+            color: #888;
+        }
+
+        /* 성공 메시지 */
+        .success-banner {
+            background: #E8F5F1;
+            border: 1.5px solid #00C896;
+            color: #007A5E;
+            padding: 14px 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 24px 16px;
+            border-radius: 10px;
+        }
+
+        /* 폼 컨테이너 */
+        .form-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* 섹션 카드 */
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #00C896;
+            margin-bottom: 20px;
+        }
+
+        /* 폼 그룹 */
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .required-mark { color: #E53E3E; margin-left: 2px; }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="time"],
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #E8E8E8;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #FAFAFA;
+            transition: border-color 0.2s, background 0.2s;
+            color: #1A1A1A;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00C896;
+            background: white;
+        }
+        .form-group textarea {
+            resize: none;
+            height: 100px;
+        }
+        .char-count {
+            text-align: right;
+            font-size: 11px;
+            color: #BBB;
+            margin-top: 4px;
+        }
+
+        /* 두 컬럼 레이아웃 */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* 24시간 토글 */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+        .toggle-switch input { display: none; }
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: #D0D0D0;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked ~ .toggle-track { background: #00C896; }
+        .toggle-switch input:checked ~ .toggle-thumb { transform: translateX(20px); }
+
+        /* 영업시간 영역 */
+        .hours-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .hours-inputs.disabled input { opacity: 0.4; pointer-events: none; }
+
+        /* 설비 체크박스 그리드 */
+        .facility-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .facility-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border: 1.5px solid #E8E8E8;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .facility-item:hover { border-color: #00C896; background: #F5FFFC; }
+        .facility-item input[type="checkbox"] { display: none; }
+        .facility-item.checked {
+            border-color: #00C896;
+            background: #F0FAF7;
+        }
+        .facility-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .facility-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+        .check-mark {
+            margin-left: auto;
+            color: #00C896;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .facility-item.checked .check-mark { opacity: 1; }
+
+        /* 변기 종류 */
+        .toilet-type-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .type-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .type-btn {
+            padding: 11px;
+            border: 1.5px solid #E8E8E8;
+            border-radius: 10px;
+            background: white;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .type-btn:hover { border-color: #00C896; color: #00C896; }
+        .type-btn.active {
+            border-color: #00C896;
+            background: #00C896;
+            color: white;
+        }
+
+        /* 태그 */
+        .tag-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-chip {
+            padding: 8px 16px;
+            border: 1.5px solid #E0E0E0;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+            background: white;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tag-chip:hover { border-color: #00C896; color: #00C896; }
+        .tag-chip.selected {
+            border-color: #00C896;
+            background: #00C896;
+            color: white;
+        }
+        .tag-chip input { display: none; }
+
+        /* 제출 버튼 */
+        .submit-section {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #00C896;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .submit-btn:hover { background: #00B385; }
+        .submit-btn:active { transform: scale(0.99); }
+
+        /* 페이지 하단 여백 (footer.css로 커버) */
+
+        @media (max-width: 600px) {
+            .two-col, .facility-grid, .type-buttons { grid-template-columns: 1fr; }
+            .page-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 뒤로가기 -->
+<a href="/" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    マップに戻る
+</a>
+
+<!-- 페이지 헤더 -->
+<div class="page-header">
+    <h1 class="page-title">新しいトイレを追加</h1>
+    <p class="page-subtitle">トイレ情報を提出してください。管理者の確認後に公開されます。</p>
+</div>
+
+<!-- 성공 메시지 -->
+<div class="success-banner" th:if="${param.success}" style="max-width:720px; margin: 0 auto 16px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    提出が完了しました！管理者の確認後に公開されます。
+</div>
+
+<form action="/toilet/add" method="post" id="addForm">
+<div class="form-container">
+
+    <!-- 기본정보 섹션 -->
+    <div class="section-card">
+        <div class="section-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v4l3 3"></path>
+            </svg>
+            基本情報
+        </div>
+
+        <div class="form-group">
+            <label>トイレ名 <span class="required-mark">*</span></label>
+            <input type="text" name="name" placeholder="例: ソウル特別市庁" required>
+        </div>
+
+        <div class="form-group">
+            <label>住所 <span class="required-mark">*</span></label>
+            <input type="text" name="address" placeholder="例: 大韓民国 ソウル特別市 中区 世宗大路110" required>
+        </div>
+
+        <div class="two-col">
+            <div class="form-group">
+                <label>緯度</label>
+                <input type="number" name="latitude" step="0.0000001" placeholder="37.5662952" id="latInput">
+            </div>
+            <div class="form-group">
+                <label>経度</label>
+                <input type="number" name="longitude" step="0.0000001" placeholder="126.9779451" id="lngInput">
+            </div>
+        </div>
+
+        <!-- 현재 위치 가져오기 -->
+        <button type="button" onclick="getLocation()" style="
+            display: flex; align-items: center; gap: 6px;
+            background: transparent; border: 1.5px solid #00C896;
+            color: #00C896; padding: 8px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            font-family: 'M PLUS Rounded 1c', sans-serif; margin-bottom: 16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+            </svg>
+            現在地を取得
+        </button>
+    </div>
+
+    <!-- 영업시간 섹션 -->
+    <div class="section-card">
+        <div class="section-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+            </svg>
+            営業時間
+        </div>
+
+        <div class="toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" name="is24hours" value="1" id="toggle24h" onchange="toggle24Hours(this)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+            </label>
+            <span class="toggle-label">24時間営業</span>
+        </div>
+
+        <div class="hours-inputs" id="hoursInputs">
+            <div class="form-group" style="margin-bottom:0;">
+                <label>開店時間</label>
+                <input type="time" name="openTime" id="openTime">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label>閉店時間</label>
+                <input type="time" name="closeTime" id="closeTime">
+            </div>
+        </div>
+    </div>
+
+    <!-- 설비정보 섹션 -->
+    <div class="section-card">
+        <div class="section-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 9.2c0 7.3-8 11.8-8 11.8z"></path>
+            </svg>
+            設備情報
+        </div>
+
+        <div class="facility-grid">
+            <label class="facility-item" onclick="toggleFacility(this)">
+                <input type="checkbox" name="isWheelchair" value="1">
+                <span class="facility-icon">♿</span>
+                <span class="facility-name">車椅子対応</span>
+                <svg class="check-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </label>
+            <label class="facility-item" onclick="toggleFacility(this)">
+                <input type="checkbox" name="hasPaper" value="1">
+                <span class="facility-icon">🧻</span>
+                <span class="facility-name">トイレットペーパー</span>
+                <svg class="check-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </label>
+            <label class="facility-item" onclick="toggleFacility(this)">
+                <input type="checkbox" name="hasSoap" value="1">
+                <span class="facility-icon">🧼</span>
+                <span class="facility-name">石鹸</span>
+                <svg class="check-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </label>
+            <label class="facility-item" onclick="toggleFacility(this)">
+                <input type="checkbox" name="hasSanitary" value="1">
+                <span class="facility-icon">🗃️</span>
+                <span class="facility-name">生理用品自販機</span>
+                <svg class="check-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </label>
+            <label class="facility-item" onclick="toggleFacility(this)">
+                <input type="checkbox" name="hasEmergency" value="1">
+                <span class="facility-icon">🔔</span>
+                <span class="facility-name">非常ベル</span>
+                <svg class="check-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </label>
+        </div>
+
+        <!-- 변기 종류 -->
+        <div class="toilet-type-label">便器の種類</div>
+        <div class="type-buttons">
+            <button type="button" class="type-btn active" onclick="selectType(this, 'WESTERN')" data-value="WESTERN">洋式</button>
+            <button type="button" class="type-btn" onclick="selectType(this, 'EASTERN')" data-value="EASTERN">和式</button>
+            <button type="button" class="type-btn" onclick="selectType(this, 'BOTH')" data-value="BOTH">両方</button>
+        </div>
+        <input type="hidden" name="toiletType" id="toiletTypeInput" value="WESTERN">
+    </div>
+
+    <!-- 태그 섹션 -->
+    <div class="section-card">
+        <div class="section-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+            タグ
+        </div>
+        <div class="tag-grid">
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="24時間">#24時間
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="車椅子対応">#車椅子対応
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="非常ベル">#非常ベル
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="おむつ交換台">#おむつ交換台
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="清潔">#清潔
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="多目的トイレ">#多目的トイレ
+            </label>
+            <label class="tag-chip" onclick="toggleTag(this)">
+                <input type="checkbox" name="tags" value="授乳室">#授乳室
+            </label>
+        </div>
+    </div>
+
+</div>
+
+<!-- 제출 버튼 -->
+<div class="submit-section" style="margin-top: 16px; margin-bottom: 48px;">
+    <button type="submit" class="submit-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        提出する
+    </button>
+</div>
+</form>
+
+<script>
+    // 24시간 토글
+    function toggle24Hours(checkbox) {
+        const hoursInputs = document.getElementById('hoursInputs');
+        if (checkbox.checked) {
+            hoursInputs.classList.add('disabled');
+        } else {
+            hoursInputs.classList.remove('disabled');
+        }
+    }
+
+    // 설비 체크박스 토글
+    function toggleFacility(label) {
+        const checkbox = label.querySelector('input[type="checkbox"]');
+        // onclick이 label 클릭 전에 실행되므로 반전 처리
+        setTimeout(() => {
+            label.classList.toggle('checked', checkbox.checked);
+        }, 0);
+    }
+
+    // 변기 종류 선택
+    function selectType(btn, value) {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('toiletTypeInput').value = value;
+    }
+
+    // 태그 선택
+    function toggleTag(label) {
+        const checkbox = label.querySelector('input[type="checkbox"]');
+        setTimeout(() => {
+            label.classList.toggle('selected', checkbox.checked);
+        }, 0);
+    }
+
+    // 현재 위치 가져오기
+    function getLocation() {
+        if (!navigator.geolocation) {
+            alert('このブラウザは位置情報に対応していません');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                document.getElementById('latInput').value = pos.coords.latitude.toFixed(7);
+                document.getElementById('lngInput').value = pos.coords.longitude.toFixed(7);
+            },
+            () => alert('位置情報の取得に失敗しました')
+        );
+    }
+</script>
+
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

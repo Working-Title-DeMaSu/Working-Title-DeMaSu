@@ -1,3 +1,466 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #f0fdf8;
+    color: #111827;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── 뒤로가기 링크 ── */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #00C896;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 24px 0 16px;
+}
+.back-link:hover { opacity: 0.8; }
+
+/* ── 페이지 래퍼 ── */
+.page-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+    flex: 1;
+}
+
+/* ── 프로필 카드 ── */
+.profile-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #e5e7eb;
+    display: block;
+}
+
+.avatar-default {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    background: #E8F5F1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.camera-btn {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    background: #00C896;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    font-size: 12px;
+}
+
+.profile-right {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.profile-email {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 14px;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.stat-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ── 탭 카드 ── */
+.tab-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.tab-nav {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 16px 12px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+    white-space: nowrap;
+}
+
+.tab-btn:hover { color: #00C896; }
+
+.tab-btn.active {
+    color: #00C896;
+    border-bottom-color: #00C896;
+    font-weight: 500;
+}
+
+/* ── 탭 콘텐츠 ── */
+.tab-content {
+    display: none;
+    padding: 28px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ── 폼 ── */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: #111827;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #00C896;
+}
+
+/* ── LINE 토글 ── */
+.line-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+}
+
+.toggle-label span {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.toggle-label small {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 토글 스위치 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #d1d5db;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: #00C896;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+/* ── 섹션 구분선 ── */
+.section-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 8px 0 20px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+/* ── 버튼 행 ── */
+.btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-save {
+    flex: 1;
+    padding: 13px;
+    background: #00C896;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-save:hover { background: #00b386; }
+
+.btn-delete {
+    padding: 13px 20px;
+    background: #fff;
+    color: #ef4444;
+    border: 1.5px solid #ef4444;
+    border-radius: 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* ── 빈 상태 ── */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.empty-state p {
+    font-size: 14px;
+}
+
+/* ── 푸터 ── */
+footer {
+    background: #111827;
+    color: #9ca3af;
+    padding: 40px 20px 20px;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 32px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.footer-logo-icon {
+    width: 32px;
+    height: 32px;
+    background: #00C896;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-logo h3 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.footer-brand p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #9ca3af;
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.social-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.social-icon.twitter   { background: #111; color: #fff; }
+.social-icon.facebook  { background: #1877F2; color: #fff; }
+.social-icon.instagram { background: #E1306C; color: #fff; }
+.social-icon.line      { background: #06C755; color: #fff; }
+
+.footer-section h4 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.footer-section ul li a:hover { color: #fff; }
+
+.footer-bottom {
+    max-width: 800px;
+    margin: 0 auto;
+    padding-top: 20px;
+    border-top: 1px solid #1f2937;
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* =============================================
+   develop 브랜치 mypage 스타일 (body.mypage 스코프)
+   ============================================= */
 /* =============================================
    mypage.css - マイページ専用スタイル
    ※ style.cssと競合しないよう body.mypage で스코프

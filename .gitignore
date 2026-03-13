@@ -53,3 +53,9 @@ replay_pid*
 *.swp
 *.swo
 *~
+
+# --- 환경 설정 (개인 DB 정보 포함, 절대 커밋 X) ---
+src/main/resources/application.properties
+
+# --- 업로드 파일 ---
+uploads/

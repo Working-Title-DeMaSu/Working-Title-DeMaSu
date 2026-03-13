@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トイレマップ - デマス</title>
     <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -20,20 +21,76 @@
         トイレマップ
     </div>
     <div class="header-buttons">
-        <a href="/toilet/add" class="btn-add-toilet">
-            <i class="fas fa-plus-circle"></i> トイレを追加
+        <!-- トイレを追加ボタン（常時表示） -->
+        <a href="/toilet/add" class="add-toilet-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v8M8 12h8"></path>
+            </svg>
+            トイレを追加
         </a>
-        <!-- 비로그인 상태 -->
-        <div sec:authorize="!isAuthenticated()">
+
+        <!-- 未ログイン -->
+        <div sec:authorize="isAnonymous()" style="display:flex; gap:12px; align-items:center;">
             <button class="login-btn" onclick="openLoginModal()">ログイン</button>
             <a href="/register" class="signup-btn">会員登録</a>
         </div>
-        <!-- 로그인 상태 -->
-        <div sec:authorize="isAuthenticated()" class="user-info-wrap">
-            <img class="user-icon" th:src="${#authentication.principal.iconUrl != null ? #authentication.principal.iconUrl : '/img/default.png'}" alt="profile" onerror="this.src='/img/default.png'">
-            <span class="user-nickname" sec:authentication="principal.nickname">User</span>
-            <button class="login-btn" onclick="document.getElementById('logoutForm').submit();">ログアウト</button>
-            <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none;"></form>
+
+        <!-- ログイン済み：ユーザーメニュー -->
+        <div sec:authorize="isAuthenticated()" class="user-menu-wrapper" id="userMenuWrapper">
+            <button class="user-menu-btn" onclick="toggleUserMenu(event)">
+                <div class="user-avatar-small">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <span th:text="${#authentication.principal.nickname != null ? #authentication.principal.nickname : #authentication.principal.username}">ユーザー</span>
+                <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                    <path d="m6 9 6 6 6-6"></path>
+                </svg>
+            </button>
+
+            <div class="user-dropdown" id="userDropdown">
+                <a href="/mypage/recent" class="dropdown-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    最近のトイレ
+                </a>
+                <a href="/toilet/add" class="dropdown-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 8v8M8 12h8"></path>
+                    </svg>
+                    新しいトイレを追加
+                </a>
+                <a href="/mypage" class="dropdown-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    内情報修正
+                </a>
+                <a href="/inquiry" class="dropdown-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <circle cx="12" cy="17" r="1" fill="#00C896" stroke="none"></circle>
+                    </svg>
+                    お問い合わせ
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/logout" class="dropdown-item dropdown-logout">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    ログアウト
+                </a>
+            </div>
         </div>
     </div>
 </header>
@@ -91,6 +148,9 @@
     </main>
 </div>
 
+<!-- Footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
 <!-- Image Lightbox -->
 <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
     <button class="lightbox-close" onclick="closeLightbox()">
@@ -116,8 +176,8 @@
 
         <form class="login-form" th:action="@{/login}" method="post">
             <div class="form-group">
-                <label>ユーザー名</label>
-                <input type="text" name="username" placeholder="ユーザー名を入力">
+                <label>メールアドレス</label>
+                <input type="email" name="email" placeholder="メールアドレスを入力">
             </div>
 
             <div class="form-group">
@@ -160,5 +220,49 @@
 <script type="text/javascript" th:src="'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapsClientId} + '&language=ja'"></script>
 <!-- App JS -->
 <script th:src="@{/js/app.js(v=5)}"></script>
+<script>
+    // /login 으로 리다이렉트된 경우 자동으로 로그인 모달 열기
+    if (window.location.pathname === '/login') {
+        openLoginModal();
+    }
+
+    function closeLoginModal() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+
+    // 모달 배경 클릭시 닫기
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeLoginModal();
+        }
+    });
+
+    // 유저 드롭다운 토글
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('userDropdown');
+        const chevron = document.querySelector('.chevron-icon');
+        if (!dropdown) return;
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+            dropdown.classList.remove('open');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        } else {
+            dropdown.classList.add('open');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+        }
+    }
+
+    // 드롭다운 외부 클릭시 닫기
+    document.addEventListener('click', function(e) {
+        const wrapper = document.getElementById('userMenuWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            const dropdown = document.getElementById('userDropdown');
+            const chevron = document.querySelector('.chevron-icon');
+            if (dropdown) dropdown.classList.remove('open');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    });
+</script>
 </body>
 </html>
