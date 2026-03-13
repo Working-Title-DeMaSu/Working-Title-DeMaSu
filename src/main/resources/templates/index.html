@@ -81,6 +81,15 @@
                     </svg>
                     お問い合わせ
                 </a>
+                <a href="/admin/dashboard" class="dropdown-item" sec:authorize="hasRole('ADMIN')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    管理者ダッシュボード
+                </a>
                 <div class="dropdown-divider"></div>
                 <a href="/logout" class="dropdown-item dropdown-logout">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" stroke-width="2">
@@ -176,8 +185,8 @@
 
         <form class="login-form" th:action="@{/login}" method="post">
             <div class="form-group">
-                <label>メールアドレス</label>
-                <input type="email" name="email" placeholder="メールアドレスを入力">
+                <label>ID</label>
+                <input type="text" name="username" placeholder="IDを入力">
             </div>
 
             <div class="form-group">
