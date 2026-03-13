@@ -1,5 +1,6 @@
 package com.jsl26tp.jsl26tp.config;
 
+import com.jsl26tp.jsl26tp.auth.service.CustomOAuth2UserService;
 import com.jsl26tp.jsl26tp.auth.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +15,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                   CustomOAuth2UserService customOAuth2UserService) {
         this.customUserDetailsService = customUserDetailsService;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     // 비밀번호 암호화 (BCrypt: 단방향 해시, 복호화 불가)
@@ -42,6 +46,8 @@ public class SecurityConfig {
                     "/api/check-*",         // 중복 체크 API (회원가입 시 사용)
                     "/api/line/webhook",    // LINE 챗봇 Webhook
                     "/error",               // 에러 페이지 (리다이렉트 루프 방지)
+                    "/oauth2/**",           // Google OAuth2 인증
+                    "/login/oauth2/**",     // OAuth2 콜백
                     "/css/**",
                     "/js/**",
                     "/images/**",
@@ -64,6 +70,16 @@ public class SecurityConfig {
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .permitAll()
+            )
+
+            // Google OAuth2 로그인 설정
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error=true")
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
             )
 
             // 로그아웃 설정

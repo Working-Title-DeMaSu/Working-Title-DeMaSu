@@ -2,15 +2,18 @@ package com.jsl26tp.jsl26tp.config;
 
 import com.jsl26tp.jsl26tp.auth.domain.User;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Getter
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, OAuth2User {
 
     private final Long id;
     private final String username;
@@ -20,6 +23,9 @@ public class CustomUserDetails implements UserDetails {
     private final String iconUrl;
     private final String status;        // ACTIVE, SUSPENDED, BANNED
     private final Collection<? extends GrantedAuthority> authorities;
+
+    @Setter
+    private Map<String, Object> attributes;  // OAuth2 속성 (Google 로그인용)
 
     public CustomUserDetails(User user) {
         this.id = user.getId();
@@ -39,7 +45,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // BANNED 상태이면 계정 잠금
         return !"BANNED".equals(status);
     }
 
@@ -50,7 +55,18 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        // ACTIVE 상태일 때만 로그인 허용
         return "ACTIVE".equals(status);
+    }
+
+    // ===== OAuth2User 인터페이스 구현 =====
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public String getName() {
+        return username;
     }
 }

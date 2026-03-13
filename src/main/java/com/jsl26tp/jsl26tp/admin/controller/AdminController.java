@@ -1,7 +1,6 @@
 package com.jsl26tp.jsl26tp.admin.controller;
 
 import com.jsl26tp.jsl26tp.common.ApiResponse;
-import com.jsl26tp.jsl26tp.common.PageResponse;
 import com.jsl26tp.jsl26tp.admin.domain.*;
 import com.jsl26tp.jsl26tp.admin.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -75,11 +74,11 @@ public class AdminController {
      * @param keyword 검색어 (username/nickname/email LIKE)
      * @param status  상태 필터 (ACTIVE/SUSPENDED/DELETED)
      * @param page    페이지 번호 (0-based)
-     * @return ApiResponse<PageResponse> — 공통코드 통일 응답
+     * @return ApiResponse<AdminPageResponse> — content/number 필드로 dashboard.html JS와 매핑
      */
     @GetMapping("/api/admin/users")
     @ResponseBody
-    public ApiResponse<PageResponse<AdminUser>> getUserList(
+    public ApiResponse<AdminPageResponse<AdminUser>> getUserList(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "0") int page) {
@@ -129,7 +128,7 @@ public class AdminController {
     /** 신고 목록 조회 (상태+대상타입 필터, PENDING 우선) */
     @GetMapping("/api/admin/reports")
     @ResponseBody
-    public ApiResponse<PageResponse<AdminReport>> getReportList(
+    public ApiResponse<AdminPageResponse<AdminReport>> getReportList(
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "") String targetType,
             @RequestParam(defaultValue = "0") int page) {
@@ -167,7 +166,7 @@ public class AdminController {
     /** 화장실 목록 조회 (PENDING 우선, deleted_at IS NULL) */
     @GetMapping("/api/admin/toilets")
     @ResponseBody
-    public ApiResponse<PageResponse<AdminToilet>> getToiletList(
+    public ApiResponse<AdminPageResponse<AdminToilet>> getToiletList(
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "0") int page) {
         return ApiResponse.ok(adminService.getToiletList(status, page));
@@ -196,7 +195,7 @@ public class AdminController {
     /** 문의 목록 조회 (WAITING 우선, deleted_at IS NULL) */
     @GetMapping("/api/admin/inquiries")
     @ResponseBody
-    public ApiResponse<PageResponse<AdminInquiry>> getInquiryList(
+    public ApiResponse<AdminPageResponse<AdminInquiry>> getInquiryList(
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page) {

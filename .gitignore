@@ -59,3 +59,10 @@ src/main/resources/application.properties
 
 # --- 업로드 파일 ---
 uploads/
+
+# --- Claude ---
+.claude/
+
+
+#--- 파이썬 ----
+import_toilets.py

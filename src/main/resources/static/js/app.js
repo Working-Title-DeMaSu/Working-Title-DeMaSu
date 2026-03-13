@@ -731,9 +731,9 @@ function moveToMyLocation() {
     }
 }
 
-// ========== Google 로그인 (추후 구현) ==========
+// ========== Google OAuth2 로그인 ==========
 function googleLogin() {
-    showToast('Googleログインは準備中です。');
+    window.location.href = '/oauth2/authorization/google';
 }
 
 // ========== 토스트 알림 ==========

@@ -2,7 +2,6 @@ package com.jsl26tp.jsl26tp.admin.service;
 
 import com.jsl26tp.jsl26tp.common.BusinessException;
 import com.jsl26tp.jsl26tp.common.ErrorCode;
-import com.jsl26tp.jsl26tp.common.PageResponse;
 import com.jsl26tp.jsl26tp.admin.domain.*;
 import com.jsl26tp.jsl26tp.admin.mapper.AdminMapper;
 import lombok.RequiredArgsConstructor;
@@ -38,14 +37,15 @@ public class AdminService {
      * @param keyword 검색어 (username/nickname/email LIKE)
      * @param status  상태 필터 (ACTIVE/SUSPENDED/DELETED, 빈 문자열이면 전체)
      * @param page    현재 페이지 번호 (0-based)
-     * @return PageResponse — 공통코드 PageResponse<T> 사용
+     * @return AdminPageResponse — dashboard.html JS 필드명(content, number)에 맞춘 admin 전용 응답
      */
-    public PageResponse<AdminUser> getUserList(String keyword, String status, int page) {
+    public AdminPageResponse<AdminUser> getUserList(String keyword, String status, int page) {
         int offset = page * PAGE_SIZE;
         List<AdminUser> items = adminMapper.findUserList(keyword, status, offset, PAGE_SIZE);
         int totalCount = adminMapper.countUsers(keyword, status);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        return new PageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
+        // AdminPageResponse: content(=items), number(=page), totalPages → HTML의 res.data.* 와 일치
+        return new AdminPageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
     }
 
     /**
@@ -108,12 +108,12 @@ public class AdminService {
     // =====================================================================
 
     /** 신고 목록 조회 (페이징) */
-    public PageResponse<AdminReport> getReportList(String status, String targetType, int page) {
+    public AdminPageResponse<AdminReport> getReportList(String status, String targetType, int page) {
         int offset = page * PAGE_SIZE;
         List<AdminReport> items = adminMapper.findReportList(status, targetType, offset, PAGE_SIZE);
         int totalCount = adminMapper.countReports(status, targetType);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        return new PageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
+        return new AdminPageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
     }
 
     /**
@@ -180,12 +180,12 @@ public class AdminService {
     // =====================================================================
 
     /** 화장실 목록 조회 (페이징) */
-    public PageResponse<AdminToilet> getToiletList(String status, int page) {
+    public AdminPageResponse<AdminToilet> getToiletList(String status, int page) {
         int offset = page * PAGE_SIZE;
         List<AdminToilet> items = adminMapper.findToiletList(status, offset, PAGE_SIZE);
         int totalCount = adminMapper.countToilets(status);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        return new PageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
+        return new AdminPageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
     }
 
     /**
@@ -227,12 +227,12 @@ public class AdminService {
     // =====================================================================
 
     /** 문의 목록 조회 (페이징) */
-    public PageResponse<AdminInquiry> getInquiryList(String status, String keyword, int page) {
+    public AdminPageResponse<AdminInquiry> getInquiryList(String status, String keyword, int page) {
         int offset = page * PAGE_SIZE;
         List<AdminInquiry> items = adminMapper.findInquiryList(status, keyword, offset, PAGE_SIZE);
         int totalCount = adminMapper.countInquiries(status, keyword);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        return new PageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
+        return new AdminPageResponse<>(items, page, PAGE_SIZE, totalCount, totalPages);
     }
 
     /**
