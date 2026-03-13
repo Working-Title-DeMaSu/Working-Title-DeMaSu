@@ -87,12 +87,13 @@ public class ToiletController {
 
 
     //정보 수정 제안
-    @GetMapping("/{id}/edit-request")
+    @PostMapping("/{id}/edit-request")
     public ApiResponse<Void> editRequest(
                 @PathVariable Long id,
                 @RequestBody Map<String, String> body,
                 @AuthenticationPrincipal CustomUserDetails user){
 
+        String category = body.get("category");
         String content = body.get("content");
         toiletService.submitEditRequest(id, user.getId(), content);
         return ApiResponse.ok();

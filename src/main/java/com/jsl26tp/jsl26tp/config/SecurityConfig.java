@@ -43,6 +43,9 @@ public class SecurityConfig {
                     "/login",               // 로그인
                     "/register",            // 회원가입
                     "/api/toilets/**",      // 화장실 조회 API (비회원도 위치 조회 가능)
+                    "/review/api/toilet/*/avg",  // 리뷰 평균 점수 (비회원도 조회 가능)
+                    "/review/api/toilet/*/cnt",  // 리뷰 개수 (비회원도 조회 가능)
+                    "/review/api/toilet/*",      // 화장실별 리뷰 목록 (비회원도 조회 가능)
                     "/api/check-*",         // 중복 체크 API (회원가입 시 사용)
                     "/api/line/webhook",    // LINE 챗봇 Webhook
                     "/error",               // 에러 페이지 (리다이렉트 루프 방지)
