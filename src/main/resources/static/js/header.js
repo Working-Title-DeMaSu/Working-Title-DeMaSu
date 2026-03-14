@@ -2,10 +2,20 @@
    デマス 共通ヘッダー JS
    ============================================ */
 
-// ログアウト後（?logout=true）はログインモーダルを開かない
-// header.jsはapp.jsの後、インラインscriptの前に読み込まれるのでここで上書き可能
+// ログアウト後（?logout=true）はページロード時にモーダルを自動で開かない
+// ただし、ユーザーが手動でログインボタンを押した場合はモーダルを開く
+// → URLから ?logout=true を除去してからモーダルを表示する
 if (window.location.search && window.location.search.includes('logout')) {
-    window.openLoginModal = function() {}; // no-op
+    window.openLoginModal = function() {
+        // URLのクエリパラメータを除去してブラウザ履歴を更新（リロードなし）
+        history.replaceState(null, '', window.location.pathname);
+        // 元の openLoginModal を呼び出すため、app.js の実装を直接実行
+        var modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    };
 }
 
 // ======= ユーザードロップダウン =======
